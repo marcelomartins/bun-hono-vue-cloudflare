@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bhvc-starter-kit",
+  "compatibility_date": "2026-04-24",
+  "main": "./worker-api/src/index.ts",
+  "assets": {
+    "directory": "./dist/web-vue",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "none",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bhvc-starter-kit",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "./worker-api/migrations"
+    }
+  ],
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  }
+}

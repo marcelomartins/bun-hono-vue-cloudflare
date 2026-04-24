@@ -1,0 +1,25 @@
+{
+  "name": "bhvc-starter-kit",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "web-vue",
+    "worker-api",
+    "worker-shared/*"
+  ],
+  "scripts": {
+    "dev:web": "bun run --cwd web-vue dev",
+    "dev:api": "bun run --cwd worker-api dev",
+    "build:web": "bun ./scripts/build-web.mjs",
+    "build:api": "bun run --cwd worker-api build",
+    "build": "bun run build:web && bun run build:api",
+    "deploy": "bun ./scripts/deploy.mjs",
+    "d1:migrate:local": "bun ./scripts/d1-migrate.mjs local",
+    "d1:migrate:remote": "bun ./scripts/d1-migrate.mjs remote",
+    "cf:typegen": "wrangler types --config ./wrangler.jsonc --env-interface CloudflareBindings"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "wrangler": "^4.85.0"
+  }
+}

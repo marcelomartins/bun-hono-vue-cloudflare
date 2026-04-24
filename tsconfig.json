@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./worker-shared/contracts"
+    },
+    {
+      "path": "./web-vue"
+    },
+    {
+      "path": "./worker-api"
+    }
+  ]
+}
