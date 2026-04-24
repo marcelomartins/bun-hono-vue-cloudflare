@@ -1,6 +1,6 @@
 # BHVC: Bun Hono Vue Cloudflare Starter Kit
 
-An opinionated full-stack starter for building Cloudflare-native applications with Bun, Hono, Vue, and D1.
+An opinionated full-stack starter for building Cloudflare-native applications with Bun, Hono, Vue, and D1 Database.
 
 BHVC combines pre-rendered public pages, authenticated SPA routes, a Worker-first request pipeline, and shared TypeScript contracts in a single repository. It is designed for teams that want one codebase for marketing pages, application pages, and API endpoints without giving up edge-native deployment.
 
@@ -29,7 +29,7 @@ BHVC combines pre-rendered public pages, authenticated SPA routes, a Worker-firs
 - Pre-render public pages for fast delivery and SEO-friendly HTML.
 - Gate protected application routes through the Worker before the SPA shell is served.
 - Keep the frontend as a single Vue app with separate public and authenticated flows.
-- Run backend logic on Cloudflare Workers with D1 as the default relational store.
+- Run backend logic on Cloudflare Workers with D1 Database as the default relational store.
 - Share API contracts between frontend and backend through a workspace package.
 
 ## Tech Stack
@@ -37,7 +37,7 @@ BHVC combines pre-rendered public pages, authenticated SPA routes, a Worker-firs
 - Bun workspaces for package management and scripts
 - Vue 3, Vue Router, Pinia, and vite-ssg for the web client
 - Hono on Cloudflare Workers for the API and route orchestration
-- Cloudflare D1 for persistence
+- Cloudflare D1 Database for persistence
 - TypeScript across all packages
 
 ## What You Get Out of the Box
@@ -65,7 +65,7 @@ Browser request
 	+-> Backend route (/auth/*, /api/v1/*, /health)
 				 -> Hono middleware stack
 				 -> Route modules
-				 -> D1 access through repositories
+				 -> D1 Database access through repositories
 ```
 
 The root [`wrangler.jsonc`](./wrangler.jsonc) is configured with `run_worker_first: true`, which is what allows the Worker to stay in control of protected route delivery before static assets are served.
@@ -81,7 +81,7 @@ The root [`wrangler.jsonc`](./wrangler.jsonc) is configured with `run_worker_fir
 |- worker-api/               # Hono Worker API
 |  |- src/index.ts           # Worker entrypoint and request routing
 |  |- src/modules/           # Auth, health, me, and other backend modules
-|  |- migrations/            # D1 migrations
+|  |- migrations/            # D1 Database migrations
 |- worker-shared/contracts/  # Shared TypeScript contracts package
 |- scripts/                  # Build, migration, and deploy scripts
 |- wrangler.jsonc            # Root Cloudflare configuration
@@ -155,8 +155,8 @@ Important: when you are using `bun run dev:api`, the Worker serves files from `d
 | `bun run build:web` | Build the frontend into `dist/web-vue` |
 | `bun run build:api` | Dry-run the Worker deployment into `dist/worker-api` |
 | `bun run build` | Build both frontend and Worker |
-| `bun run d1:migrate:local` | Apply D1 migrations locally |
-| `bun run d1:migrate:remote` | Apply D1 migrations remotely |
+| `bun run d1:migrate:local` | Apply D1 database migrations locally |
+| `bun run d1:migrate:remote` | Apply D1 database migrations remotely |
 | `bun run deploy` | Build and deploy the application |
 | `bun run cf:typegen` | Regenerate Cloudflare binding types |
 
