@@ -20,6 +20,11 @@ export const security = (): MiddlewareHandler => {
     c.header('x-frame-options', 'DENY')
     c.header('referrer-policy', 'strict-origin-when-cross-origin')
     c.header('permissions-policy', 'camera=(), microphone=(), geolocation=()')
+
+    if (new URL(c.req.url).protocol === 'https:') {
+      c.header('strict-transport-security', 'max-age=31536000; includeSubDomains')
+    }
+
     await next()
   }
 }

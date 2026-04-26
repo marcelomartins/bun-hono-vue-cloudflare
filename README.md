@@ -115,6 +115,8 @@ bunx wrangler d1 create bhvc-starter-kit
 
 4. Update [`wrangler.jsonc`](./wrangler.jsonc) with the returned `database_id`.
 
+Keep the starter placeholder in version control if you are publishing this repository as a reusable template. Put local-only runtime configuration in `.dev.vars`, and use Cloudflare dashboard variables or Wrangler secrets for production values instead of committing environment-specific data.
+
 5. Apply local migrations.
 
 ```bash

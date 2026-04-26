@@ -14,8 +14,7 @@ export const csrfProtection = (): MiddlewareHandler => {
     const origin = c.req.header('origin') ?? getOriginFromReferer(c.req.header('referer'))
 
     if (!origin) {
-      await next()
-      return
+      throw new ApiError(403, 'csrf_origin_missing', 'Missing Origin or Referer header.')
     }
 
     if (!isAllowedOrigin(c.env, c.req.url, origin)) {

@@ -10,6 +10,7 @@ import { handleError } from '@/middlewares/error-handler'
 import { optionalAuth } from '@/middlewares/optional-auth'
 import { requestId } from '@/middlewares/request-id'
 import { security } from '@/middlewares/security'
+import { withNoStore } from '@/lib/response'
 
 const AUTH_PREFIX = '/auth'
 const API_V1_PREFIX = '/api/v1'
@@ -45,6 +46,15 @@ const serveAsset = (c: Context<AppEnv>, assetPath: string) => {
   return c.env.ASSETS.fetch(new Request(assetUrl, c.req.raw))
 }
 
+const serveProtectedSpaShell = async (c: Context<AppEnv>) => {
+  if (!c.get('currentUser')) {
+    return withNoStore(c.redirect('/'))
+  }
+
+  const response = await serveAsset(c, PROTECTED_SPA_SHELL_PATH)
+  return withNoStore(response)
+}
+
 const app = new Hono<AppEnv>()
 
 app.use('*', requestId())
@@ -60,17 +70,21 @@ app.route(AUTH_PREFIX, authModule)
 app.route(`${API_V1_PREFIX}/me`, meModule)
 
 for (const prefix of spaRoutes) {
-  app.get(prefix, (c) => serveAsset(c, PROTECTED_SPA_SHELL_PATH))
-  app.get(`${prefix}/*`, (c) => serveAsset(c, PROTECTED_SPA_SHELL_PATH))
+  app.get(prefix, serveProtectedSpaShell)
+  app.get(`${prefix}/*`, serveProtectedSpaShell)
 }
 
 app.notFound(async (c) => {
+  if (c.req.path === PROTECTED_SPA_SHELL_PATH) {
+    return withNoStore(new Response('Not Found', { status: 404 }))
+  }
+
   if (isProtectedSpaPath(c.req.path)) {
-    return serveAsset(c, PROTECTED_SPA_SHELL_PATH)
+    return serveProtectedSpaShell(c)
   }
 
   if (isBackendPath(c.req.path)) {
-    return new Response('Not Found', { status: 404 })
+    return withNoStore(new Response('Not Found', { status: 404 }))
   }
 
   if (!hasFileExtension(c.req.path)) {

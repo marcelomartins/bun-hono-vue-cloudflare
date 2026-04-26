@@ -3,7 +3,7 @@ import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import type { Context } from 'hono'
 import type { AppEnv } from '@/env'
 import { getSessionCookieName, getSessionCookieOptions } from '@/lib/session'
-import { jsonSuccess } from '@/lib/response'
+import { jsonSuccess, setNoStore } from '@/lib/response'
 import { loginSchema, registerSchema } from './auth-schema'
 import { getSessionState, login, logout, register } from './auth-service'
 
@@ -13,6 +13,11 @@ const setAuthSessionCookie = (c: Context<AppEnv>, token: string) => {
 }
 
 export const authModule = new Hono<AppEnv>()
+
+authModule.use('*', async (c, next) => {
+  setNoStore(c)
+  await next()
+})
 
 authModule.post('/login', async (c) => {
   const payload = loginSchema.parse(await c.req.json())
