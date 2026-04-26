@@ -284,4 +284,4 @@ BHVC is a reusable starter kit, not a finished product. Expect to clone it, adap
 
 ## License
 
-This repository does not currently include a `LICENSE` file. If you intend to publish it as an open source project, add a license before release so usage, modification, and redistribution terms are explicit.
+This repository is licensed under the MIT License. See [LICENSE](./LICENSE) for the full text.
