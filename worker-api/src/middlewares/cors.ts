@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
-import { isAllowedOrigin } from '@/lib/origin'
+import { isAllowedOrigin } from '@api/lib/origin'
 
 export const cors = (): MiddlewareHandler => {
   return async (c, next) => {

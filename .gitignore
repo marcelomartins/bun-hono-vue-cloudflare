@@ -25,3 +25,6 @@ web-vue/.vite/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+.agents
+.idea

@@ -1,5 +1,5 @@
 import type { SessionRecord } from './auth-types'
-import { execute, nowIso, plusSecondsIso, queryFirst } from '@/lib/db'
+import { execute, nowIso, plusSecondsIso, queryFirst } from '@api/lib/db'
 
 type SessionRow = {
   id: string

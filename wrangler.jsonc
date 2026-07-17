@@ -7,8 +7,25 @@
     "directory": "./dist/web-vue",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "none",
-    "run_worker_first": true
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": [
+      "/api",
+      "/api/*",
+      "/auth",
+      "/auth/*",
+      "/health",
+      "/health/*",
+      "/dashboard",
+      "/dashboard/*",
+      "/account",
+      "/account/*",
+      "/settings",
+      "/settings/*",
+      "/index-spa",
+      "/index-spa/*",
+      "/index-spa.html",
+      "!/assets/*"
+    ]
   },
   "d1_databases": [
     {

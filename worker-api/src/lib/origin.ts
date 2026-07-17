@@ -1,4 +1,4 @@
-import type { AppBindings } from '@/env'
+import type { AppBindings } from '@api/env'
 
 const normalizeOrigin = (value: string) => {
   try {

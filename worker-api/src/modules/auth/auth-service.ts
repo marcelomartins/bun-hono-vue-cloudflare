@@ -1,9 +1,9 @@
 import type { LoginRequest, RegisterRequest, SessionResponse } from '@bhvc/contracts'
-import type { AppBindings } from '@/env'
-import { ApiError } from '@/lib/errors'
-import { SESSION_TTL_SECONDS, createSessionToken, hashPassword, hashSessionToken, verifyPassword } from '@/lib/session'
+import type { AppBindings } from '@api/env'
+import { ApiError } from '@api/lib/errors'
+import { SESSION_TTL_SECONDS, createSessionToken, hashPassword, hashSessionToken, verifyPassword } from '@api/lib/session'
 import { createSession, deleteExpiredSessions, deleteSessionByTokenHash, findSessionByTokenHash } from './session-repository'
-import { createUser, findUserByEmail, findUserById } from '@/modules/user/user-repository'
+import { createUser, findUserByEmail, findUserById } from '@api/modules/user/user-repository'
 
 const toSessionResponse = (user: { id: string; email: string; name: string }): SessionResponse => ({
   authenticated: true,

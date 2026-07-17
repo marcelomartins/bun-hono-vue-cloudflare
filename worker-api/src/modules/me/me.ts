@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
-import type { AppEnv } from '@/env'
-import { jsonSuccess, setNoStore } from '@/lib/response'
-import { authRequired } from '@/middlewares/auth-required'
+import type { AppEnv } from '@api/env'
+import { jsonSuccess, setNoStore } from '@api/lib/response'
+import { authRequired } from '@api/middlewares/auth-required'
 
 export const meModule = new Hono<AppEnv>()
 

@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
-import { ApiError } from '@/lib/errors'
-import { getOriginFromReferer, isAllowedOrigin } from '@/lib/origin'
+import { ApiError } from '@api/lib/errors'
+import { getOriginFromReferer, isAllowedOrigin } from '@api/lib/origin'
 
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 

@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
-import { ApiError } from '@/lib/errors'
+import { ApiError } from '@api/lib/errors'
 
 export const authRequired = (): MiddlewareHandler => {
   return async (c, next) => {

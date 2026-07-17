@@ -1,7 +1,7 @@
-import type { AppEnv } from '@/env'
-import { ApiError } from '@/lib/errors'
-import { logger } from '@/lib/logger'
-import { jsonError } from '@/lib/response'
+import type { AppEnv } from '@api/env'
+import { ApiError } from '@api/lib/errors'
+import { logger } from '@api/lib/logger'
+import { jsonError } from '@api/lib/response'
 
 export const handleError = (error: Error, c: { env: AppEnv['Bindings']; get: <K extends keyof AppEnv['Variables']>(key: K) => AppEnv['Variables'][K] }) => {
   if (error instanceof ApiError) {

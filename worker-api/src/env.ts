@@ -1,4 +1,4 @@
-import type { SessionRecord, UserRecord } from '@/modules/auth/auth-types'
+import type { SessionRecord, UserRecord } from '@api/modules/auth/auth-types'
 
 export type AppBindings = {
   DB: D1Database

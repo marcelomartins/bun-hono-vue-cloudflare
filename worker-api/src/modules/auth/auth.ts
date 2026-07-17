@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import type { Context } from 'hono'
-import type { AppEnv } from '@/env'
-import { getSessionCookieName, getSessionCookieOptions } from '@/lib/session'
-import { jsonSuccess, setNoStore } from '@/lib/response'
+import type { AppEnv } from '@api/env'
+import { jsonSuccess, setNoStore } from '@api/lib/response'
+import { getSessionCookieName, getSessionCookieOptions } from '@api/lib/session'
 import { loginSchema, registerSchema } from './auth-schema'
 import { getSessionState, login, logout, register } from './auth-service'
 

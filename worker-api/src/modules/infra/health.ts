@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import type { AppEnv } from '@/env'
-import { jsonSuccess, setNoStore } from '@/lib/response'
+import type { AppEnv } from '@api/env'
+import { jsonSuccess, setNoStore } from '@api/lib/response'
 
 export const healthModule = new Hono<AppEnv>()
 

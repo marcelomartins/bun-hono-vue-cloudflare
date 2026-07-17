@@ -1,33 +1,42 @@
+import {
+  PRIVATE_SPA_SHELL_PATHS,
+  PROTECTED_ROUTE_PREFIXES,
+  PROTECTED_SPA_SHELL_ASSET_PATH,
+} from '@bhvc/contracts'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import type { AppEnv } from '@/env'
-import { authModule } from '@/modules/auth/auth'
-import { healthModule } from '@/modules/infra/health'
-import { meModule } from '@/modules/me/me'
-import { cors } from '@/middlewares/cors'
-import { csrfProtection } from '@/middlewares/csrf-protection'
-import { handleError } from '@/middlewares/error-handler'
-import { optionalAuth } from '@/middlewares/optional-auth'
-import { requestId } from '@/middlewares/request-id'
-import { security } from '@/middlewares/security'
-import { withNoStore } from '@/lib/response'
+import type { AppEnv } from '@api/env'
+import { withNoStore } from '@api/lib/response'
+import { cors } from '@api/middlewares/cors'
+import { csrfProtection } from '@api/middlewares/csrf-protection'
+import { handleError } from '@api/middlewares/error-handler'
+import { optionalAuth } from '@api/middlewares/optional-auth'
+import { requestId } from '@api/middlewares/request-id'
+import { security } from '@api/middlewares/security'
+import { authModule } from '@api/modules/auth/auth'
+import { healthModule } from '@api/modules/infra/health'
+import { meModule } from '@api/modules/me/me'
 
 const AUTH_PREFIX = '/auth'
+const API_PREFIX = '/api'
 const API_V1_PREFIX = '/api/v1'
-const PROTECTED_SPA_SHELL_PATH = '/index-spa.html'
-
-const spaRoutes = ['/dashboard', '/account', '/settings'] as const
 
 const isProtectedSpaPath = (path: string) => {
-  return spaRoutes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+  return PROTECTED_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+}
+
+const isPrivateSpaShellPath = (path: string) => {
+  return PRIVATE_SPA_SHELL_PATHS.some((shellPath) => path === shellPath)
+    || path.startsWith(`${PROTECTED_SPA_SHELL_ASSET_PATH}/`)
 }
 
 const isBackendPath = (path: string) => {
   return path === '/health'
+    || path.startsWith('/health/')
     || path === AUTH_PREFIX
     || path.startsWith(`${AUTH_PREFIX}/`)
-    || path === API_V1_PREFIX
-    || path.startsWith(`${API_V1_PREFIX}/`)
+    || path === API_PREFIX
+    || path.startsWith(`${API_PREFIX}/`)
 }
 
 const hasFileExtension = (path: string) => /\/[^/]+\.[^/]+$/.test(path)
@@ -51,8 +60,8 @@ const serveProtectedSpaShell = async (c: Context<AppEnv>) => {
     return withNoStore(c.redirect('/'))
   }
 
-  const response = await serveAsset(c, PROTECTED_SPA_SHELL_PATH)
-  return withNoStore(response)
+  const response = withNoStore(await serveAsset(c, PROTECTED_SPA_SHELL_ASSET_PATH))
+  return c.newResponse(response.body, response)
 }
 
 const app = new Hono<AppEnv>()
@@ -69,22 +78,24 @@ app.route('/health', healthModule)
 app.route(AUTH_PREFIX, authModule)
 app.route(`${API_V1_PREFIX}/me`, meModule)
 
-for (const prefix of spaRoutes) {
+for (const prefix of PROTECTED_ROUTE_PREFIXES) {
   app.get(prefix, serveProtectedSpaShell)
   app.get(`${prefix}/*`, serveProtectedSpaShell)
 }
 
 app.notFound(async (c) => {
-  if (c.req.path === PROTECTED_SPA_SHELL_PATH) {
-    return withNoStore(new Response('Not Found', { status: 404 }))
+  if (isPrivateSpaShellPath(c.req.path)) {
+    return withNoStore(c.text('Not Found', 404))
   }
 
   if (isProtectedSpaPath(c.req.path)) {
-    return serveProtectedSpaShell(c)
+    return c.req.method === 'GET'
+      ? serveProtectedSpaShell(c)
+      : withNoStore(c.text('Not Found', 404))
   }
 
   if (isBackendPath(c.req.path)) {
-    return withNoStore(new Response('Not Found', { status: 404 }))
+    return withNoStore(c.text('Not Found', 404))
   }
 
   if (!hasFileExtension(c.req.path)) {

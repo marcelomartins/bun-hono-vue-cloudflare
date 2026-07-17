@@ -47,7 +47,7 @@ BHVC combines pre-rendered public pages, authenticated SPA routes, a Worker-firs
 - Cookie-based authentication with register, login, logout, and session endpoints
 - Versioned API routing under `/api/v1/*`
 - Shared contracts in [`worker-shared/contracts`](./worker-shared/contracts)
-- Frontend assets served by the Worker from `dist/web-vue`
+- Frontend assets deployed from `dist/web-vue`, with public files served directly by Cloudflare's asset layer
 
 ## Architecture at a Glance
 
@@ -55,11 +55,11 @@ BHVC combines pre-rendered public pages, authenticated SPA routes, a Worker-firs
 Browser request
 	|
 	+-> Public route (/ , /pricing, /contact)
-	|      -> Worker resolves prerendered HTML from ASSETS
+	|      -> Cloudflare asset layer resolves prerendered HTML without invoking the Worker
 	|
 	+-> Protected route (/dashboard, /account, /settings)
 	|      -> Worker checks auth first
-	|      -> Worker serves /index-spa.html
+	|      -> Worker fetches the canonical /index-spa asset
 	|      -> Vue SPA loads protected modules
 	|
 	+-> Backend route (/auth/*, /api/v1/*, /health)
@@ -68,7 +68,7 @@ Browser request
 				 -> D1 Database access through repositories
 ```
 
-The root [`wrangler.jsonc`](./wrangler.jsonc) is configured with `run_worker_first: true`, which is what allows the Worker to stay in control of protected route delivery before static assets are served.
+The root [`wrangler.jsonc`](./wrangler.jsonc) scopes `run_worker_first` to backend namespaces, protected routes, and the private SPA shell. Public SSG pages and hashed assets are served directly by Cloudflare's asset layer, while protected routes still pass through Worker authentication before the shell is served.
 
 ## Repository Layout
 
@@ -90,6 +90,7 @@ The root [`wrangler.jsonc`](./wrangler.jsonc) is configured with `run_worker_fir
 ## Requirements
 
 - [Bun](https://bun.sh/)
+- [Node.js](https://nodejs.org/) 22.12 or newer for the Vite 8 toolchain
 - A Cloudflare account
 - Access to create and deploy a Cloudflare Worker and D1 database
 
@@ -101,59 +102,54 @@ The root [`wrangler.jsonc`](./wrangler.jsonc) is configured with `run_worker_fir
 bun install
 ```
 
-2. Authenticate Wrangler with Cloudflare.
+2. Start the integrated local development server.
+
+```bash
+bun run dev
+```
+
+This applies local D1 migrations and starts Vue with HMR together with the Worker running in `workerd` on the same origin.
+
+3. Open the local Vite URL and register the first user from the public home page.
+
+Before the first deployment, authenticate Wrangler with Cloudflare:
 
 ```bash
 bunx wrangler login
 ```
 
-3. Create a D1 database.
+Then create a D1 database:
 
 ```bash
 bunx wrangler d1 create bhvc-starter-kit
 ```
 
-4. Update [`wrangler.jsonc`](./wrangler.jsonc) with the returned `database_id`.
+Update [`wrangler.jsonc`](./wrangler.jsonc) with the returned `database_id`.
 
 Keep the starter placeholder in version control if you are publishing this repository as a reusable template. Put local-only runtime configuration in `.dev.vars`, and use Cloudflare dashboard variables or Wrangler secrets for production values instead of committing environment-specific data.
-
-5. Apply local migrations.
-
-```bash
-bun run d1:migrate:local
-```
-
-6. Build the frontend assets that the Worker serves.
-
-```bash
-bun run build:web
-```
-
-7. Start the application through the Worker.
-
-```bash
-bun run dev:api
-```
-
-8. Open the local Wrangler URL in your browser and register the first user from the public home page.
 
 ## Development Workflow
 
 Use the workflow that matches the part of the stack you are editing.
 
-- `bun run dev:api`: runs the integrated application through Cloudflare Wrangler and serves assets through the Worker.
-- `bun run dev:web`: runs the Vue app directly with Vite for isolated frontend work.
+- `bun run dev`: primary workflow. Applies local D1 migrations, runs Vue with HMR, and runs the Worker in `workerd` through the Cloudflare Vite plugin.
+- `bun run dev:web`: runs only the Vue app for isolated frontend work; API and Worker-side route gates are not available.
+- `bun run dev:api`: fallback for Worker debugging against the static frontend output in `dist/web-vue`.
 - `bun run build:web`: rebuilds the frontend output consumed by the Worker.
 - `bun run build`: builds the frontend and performs a dry-run Worker bundle.
 
-Important: when you are using `bun run dev:api`, the Worker serves files from `dist/web-vue`. If you change frontend code, run `bun run build:web` again so the Worker serves the updated assets.
+The integrated dev server uses one origin, keeps local binding state in the root `.wrangler/state`, and honors the same `run_worker_first` protected-route gate used in production. Public pages render client-side during development because their SSG files only exist after a production build; the dev-only assets fallback accounts for that difference.
+
+Important: `bun run dev:api` still serves files from `dist/web-vue`. If you use that fallback and change frontend code, run `bun run build:web` again.
 
 ## Available Scripts
 
 | Command | Purpose |
 | --- | --- |
+| `bun run dev` | Run the integrated Vue + Worker server with HMR and local D1 |
 | `bun run dev:web` | Run the Vue app directly with Vite |
 | `bun run dev:api` | Run the full application through Wrangler |
+| `bun run validate:routes` | Verify that protected and private paths are covered by `run_worker_first` |
 | `bun run build:web` | Build the frontend into `dist/web-vue` |
 | `bun run build:api` | Dry-run the Worker deployment into `dist/worker-api` |
 | `bun run build` | Build both frontend and Worker |
@@ -183,7 +179,7 @@ When you add a new public route, update every required location below:
 
 Notes:
 
-- The Worker does not keep a separate allowlist for public routes. Public pages work because the prerendered HTML exists and the Worker fallback in [`worker-api/src/index.ts`](./worker-api/src/index.ts) serves that HTML asset.
+- The Worker does not keep a separate allowlist for public routes. Public pages work because the prerendered HTML exists and Cloudflare's asset layer resolves extensionless URLs through `html_handling: auto-trailing-slash`.
 - [`web-vue/src/router/index.ts`](./web-vue/src/router/index.ts) already merges public and protected route groups, so you normally do not edit that file when adding a route.
 - If you add a nested public page such as `/about/team`, add that full path to `publicPaths`; otherwise the page will exist in Vue Router but will not be generated as static HTML.
 
@@ -203,15 +199,16 @@ When you add a new protected route, update every required location below:
 
 1. Create the page component under `web-vue/src/modules/<feature>/pages`.
 2. Register the Vue route in [`web-vue/src/router/routes-spa.ts`](./web-vue/src/router/routes-spa.ts) and keep `meta.requiresAuth: true` on the route.
-3. Add the top-level protected prefix to `spaRoutes` in [`worker-api/src/index.ts`](./worker-api/src/index.ts) so the Worker serves `index-spa.html` for that path and its children.
-4. If the route should appear in the authenticated side navigation, add the link in [`web-vue/src/layouts/SpaLayout.vue`](./web-vue/src/layouts/SpaLayout.vue).
+3. Add the top-level protected prefix to `PROTECTED_ROUTE_PREFIXES` in [`worker-shared/contracts/src/routes.ts`](./worker-shared/contracts/src/routes.ts). The Worker imports this shared list when registering its shell routes.
+4. Add the exact and wildcard patterns to `assets.run_worker_first` in [`wrangler.jsonc`](./wrangler.jsonc). `bun run validate:routes` and the normal build fail when either pattern is missing.
+5. If the route should appear in the authenticated side navigation, add the link in [`web-vue/src/layouts/SpaLayout.vue`](./web-vue/src/layouts/SpaLayout.vue).
 
 Notes:
 
 - The Vue auth guard in [`web-vue/src/main.ts`](./web-vue/src/main.ts) already checks `meta.requiresAuth`, so new protected routes should follow that convention instead of introducing a separate guard.
 - [`web-vue/src/router/index.ts`](./web-vue/src/router/index.ts) already merges the route groups, so it usually does not need changes.
-- If you add a nested route under an existing protected prefix, such as `/settings/profile`, Vue Router still needs the new route record, but the Worker prefix list may already cover it through `/settings/*`.
-- If you add a new top-level protected prefix, keep [`web-vue/src/router/routes-spa.ts`](./web-vue/src/router/routes-spa.ts) and [`worker-api/src/index.ts`](./worker-api/src/index.ts) in sync. If these files diverge, the route may work in Vue development but fail when served through the Worker.
+- If you add a nested route under an existing protected prefix, such as `/settings/profile`, Vue Router still needs the new route record, but the existing shared prefix and `/settings/*` Worker-first pattern already cover it.
+- The private SPA shell aliases (`/index-spa` and `/index-spa.html`) also run Worker-first and return 404 to direct browser requests. Authenticated protected routes fetch the canonical shell path internally through the `ASSETS` binding.
 
 ### Backend routes
 

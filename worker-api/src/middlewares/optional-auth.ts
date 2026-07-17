@@ -1,7 +1,7 @@
 import { getCookie } from 'hono/cookie'
 import type { MiddlewareHandler } from 'hono'
-import { getSessionCookieName } from '@/lib/session'
-import { resolveSession } from '@/modules/auth/auth-service'
+import { getSessionCookieName } from '@api/lib/session'
+import { resolveSession } from '@api/modules/auth/auth-service'
 
 export const optionalAuth = (): MiddlewareHandler => {
   return async (c, next) => {

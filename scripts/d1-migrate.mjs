@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 const mode = process.argv[2]
 
@@ -7,9 +8,15 @@ if (!['local', 'remote'].includes(mode)) {
   process.exit(1)
 }
 
+const args = ['wrangler', 'd1', 'migrations', 'apply', 'DB', `--${mode}`, '--config', './wrangler.jsonc']
+
+if (mode === 'local') {
+  args.push('--persist-to', fileURLToPath(new URL('../.wrangler/state', import.meta.url)))
+}
+
 const result = spawnSync(
   'bunx',
-  ['wrangler', 'd1', 'migrations', 'apply', 'DB', `--${mode}`, '--config', './wrangler.jsonc'],
+  args,
   {
     stdio: 'inherit',
     shell: process.platform === 'win32',

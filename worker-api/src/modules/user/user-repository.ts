@@ -1,5 +1,5 @@
-import type { UserRecord } from '@/modules/auth/auth-types'
-import { execute, nowIso, queryFirst } from '@/lib/db'
+import { execute, nowIso, queryFirst } from '@api/lib/db'
+import type { UserRecord } from '@api/modules/auth/auth-types'
 
 type UserRow = {
   id: string
