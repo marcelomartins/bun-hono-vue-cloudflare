@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /account
+Disallow: /settings
+Disallow: /index-spa

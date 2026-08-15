@@ -1,13 +1,25 @@
+<script setup lang="ts">
+import { usePublicHead } from "./head";
+
+usePublicHead("Contato — BHVC Starter Kit");
+</script>
+
 <template>
-  <section class="card page">
-    <p class="pill">Contact</p>
-    <h1 class="section-title">Another public route generated at build time.</h1>
-    <p class="section-copy">Replace this page with your own contact, support, sales, or onboarding content.</p>
+  <section class="page card">
+    <h1 class="section-title">Contato</h1>
+    <p class="section-copy">
+      Página pública de exemplo, pré-renderizada com SSG. Substitua este conteúdo pelos canais de
+      contato do seu produto.
+    </p>
   </section>
 </template>
 
 <style scoped>
 .page {
-  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(28px, 6vw, 64px);
+  margin-top: 12px;
 }
 </style>

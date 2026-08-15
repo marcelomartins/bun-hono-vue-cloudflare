@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import { useHead } from "@unhead/vue";
+
+useHead({
+  htmlAttrs: { lang: "pt-BR" },
+  meta: [{ name: "viewport", content: "width=device-width, initial-scale=1.0" }]
+});
+</script>
+
 <template>
   <RouterView />
 </template>

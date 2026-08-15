@@ -1,18 +1,28 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "bhvc-starter-kit",
-  "compatibility_date": "2026-04-24",
   "main": "./worker-api/src/index.ts",
+  "compatibility_date": "2026-04-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": false
+    }
+  },
   "assets": {
     "directory": "./dist/web-vue",
     "binding": "ASSETS",
-    "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
     "run_worker_first": [
-      "/api",
-      "/api/*",
+      "/",
       "/auth",
       "/auth/*",
+      "/api",
+      "/api/*",
       "/health",
       "/health/*",
       "/dashboard",
@@ -27,6 +37,18 @@
       "!/assets/*"
     ]
   },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_HOST": "bhvc-starter-kit.invalid",
+    "APP_ORIGIN": "https://bhvc-starter-kit.invalid",
+    // Optional email delivery: "none" (default), "console" (local only) or "ses".
+    // "ses" also requires SES_REGION, SES_FROM and the AWS secrets.
+    "EMAIL_DRIVER": "none",
+    "SES_REGION": "",
+    "SES_FROM": "",
+    // Optional Turnstile: set this together with the TURNSTILE_SECRET_KEY secret.
+    "TURNSTILE_SITE_KEY": ""
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -34,20 +56,5 @@
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "./worker-api/migrations"
     }
-  ],
-  "observability": {
-    "enabled": false,
-    "head_sampling_rate": 1,
-    "logs": {
-      "enabled": true,
-      "head_sampling_rate": 1,
-      "persist": true,
-      "invocation_logs": true
-    },
-    "traces": {
-      "enabled": false,
-      "persist": true,
-      "head_sampling_rate": 1
-    }
-  }
+  ]
 }

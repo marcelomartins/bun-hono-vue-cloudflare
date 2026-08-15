@@ -1,0 +1,39 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Wrangler runs offline here: no telemetry, no interactive prompts.
+      WRANGLER_SEND_METRICS: "false"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # vite-ssg and the Vite toolchain still run on Node.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # No .dev.vars is created on purpose: the pipeline must pass on a clean
+      # checkout, and the integration tests declare their own bindings.
+      - name: Verify
+        run: bun run verify

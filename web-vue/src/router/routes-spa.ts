@@ -1,33 +1,28 @@
-import { PROTECTED_ROUTE_PREFIXES } from '@bhvc/contracts'
-import type { RouteRecordRaw } from 'vue-router'
-import SpaLayout from '@/layouts/SpaLayout.vue'
+import { PROTECTED_ROUTE_PREFIXES } from "@bhvc/contracts/routes";
+import type { RouteRecordRaw } from "vue-router";
 
-const [dashboardPath, accountPath, settingsPath] = PROTECTED_ROUTE_PREFIXES
+const [dashboardPath, accountPath, settingsPath] = PROTECTED_ROUTE_PREFIXES;
 
 export const spaRoutes: RouteRecordRaw[] = [
   {
-    path: '/',
-    component: SpaLayout,
-    meta: { requiresAuth: true },
+    path: "/",
+    component: () => import("../app/layouts/SpaLayout.vue"),
     children: [
       {
         path: dashboardPath.slice(1),
-        name: 'dashboard',
-        component: () => import('@/modules/dashboard/pages/DashboardPage.vue'),
-        meta: { requiresAuth: true },
+        name: "dashboard",
+        component: () => import("../app/pages/DashboardPage.vue")
       },
       {
         path: accountPath.slice(1),
-        name: 'account',
-        component: () => import('@/modules/account/pages/AccountPage.vue'),
-        meta: { requiresAuth: true },
+        name: "account",
+        component: () => import("../app/pages/AccountPage.vue")
       },
       {
         path: settingsPath.slice(1),
-        name: 'settings',
-        component: () => import('@/modules/settings/pages/SettingsPage.vue'),
-        meta: { requiresAuth: true },
-      },
-    ],
-  },
-]
+        name: "settings",
+        component: () => import("../app/pages/SettingsPage.vue")
+      }
+    ]
+  }
+];

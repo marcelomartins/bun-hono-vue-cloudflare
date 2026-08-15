@@ -1,11 +1,22 @@
 {
   "name": "@bhvc/contracts",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./api": "./src/api.ts",
-    "./auth": "./src/auth.ts"
+    "./routes": "./src/router/routes.ts",
+    "./api": "./src/types/api.ts",
+    "./uuid": "./src/primitives/uuid.ts",
+    "./auth": "./src/schemas/auth.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "typescript": "^6.0.3"
   }
 }

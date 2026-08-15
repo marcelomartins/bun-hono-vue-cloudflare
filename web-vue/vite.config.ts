@@ -1,16 +1,15 @@
-import { fileURLToPath, URL } from 'node:url'
-import { cloudflare } from '@cloudflare/vite-plugin'
-import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from "node:url";
+import { cloudflare } from "@cloudflare/vite-plugin";
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vite";
 
-const rootWranglerPath = fileURLToPath(new URL('../wrangler.jsonc', import.meta.url))
-const rootStatePath = fileURLToPath(new URL('../.wrangler/state', import.meta.url))
+import { forbiddenDependencyChunk } from "./scripts/forbidden-dependencies";
 
-export default defineConfig(({ command, isPreview, mode }) => {
-  const unifiedCloudflareDev = command === 'serve'
-    && isPreview !== true
-    && mode === 'cloudflare'
+const rootWranglerPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
+const rootStatePath = fileURLToPath(new URL("../.wrangler/state", import.meta.url));
 
+export default defineConfig(({ command, isPreview, isSsrBuild, mode }) => {
+  const unifiedCloudflareDev = command === "serve" && isPreview !== true && mode === "cloudflare";
   return {
     plugins: [
       ...(unifiedCloudflareDev
@@ -22,29 +21,26 @@ export default defineConfig(({ command, isPreview, mode }) => {
                 assets: {
                   // Public SSG files do not exist during development, so let
                   // Vue Router render them through the regular Vite index.
-                  not_found_handling: 'single-page-application',
-                },
-              },
-            }),
+                  not_found_handling: "single-page-application"
+                }
+              }
+            })
           ]
         : []),
-      vue(),
+      vue()
     ],
-    resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
-        '@api': fileURLToPath(new URL('../worker-api/src', import.meta.url)),
-      },
-    },
+    resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+    publicDir: fileURLToPath(new URL("./static", import.meta.url)),
     build: {
-      outDir: '../dist/web-vue',
+      outDir: fileURLToPath(new URL("../dist/web-vue", import.meta.url)),
       emptyOutDir: true,
       rollupOptions: {
         input: {
-          main: fileURLToPath(new URL('./index.html', import.meta.url)),
-          'index-spa': fileURLToPath(new URL('./index-spa.html', import.meta.url)),
+          main: fileURLToPath(new URL("./index.html", import.meta.url)),
+          "index-spa": fileURLToPath(new URL("./index-spa.html", import.meta.url))
         },
-      },
-    },
-  }
-})
+        ...(isSsrBuild === true ? {} : { output: { manualChunks: forbiddenDependencyChunk } })
+      }
+    }
+  };
+});

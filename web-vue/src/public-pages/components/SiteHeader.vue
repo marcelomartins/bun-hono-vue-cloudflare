@@ -3,8 +3,10 @@
     <RouterLink class="brand" to="/">BHVC</RouterLink>
 
     <nav>
-      <RouterLink to="/pricing">Pricing</RouterLink>
-      <RouterLink to="/contact">Contact</RouterLink>
+      <RouterLink to="/pricing">Planos</RouterLink>
+      <RouterLink to="/contact">Contato</RouterLink>
+      <RouterLink class="button ghost" to="/login">Entrar</RouterLink>
+      <RouterLink class="button primary" to="/register">Criar conta</RouterLink>
     </nav>
   </header>
 </template>
@@ -27,6 +29,7 @@
 
 nav {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 14px;
   color: var(--text-soft);

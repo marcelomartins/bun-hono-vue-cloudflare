@@ -1,26 +1,12 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "lib": [
-      "ES2022",
-      "WebWorker"
-    ],
-    "types": [
-      "@cloudflare/workers-types"
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@api/*": [
-        "./src/*"
-      ]
-    }
+    "types": ["@types/bun", "@cloudflare/vitest-pool-workers/types"]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "vitest.config.ts",
+    "worker-configuration.d.ts"
   ]
 }
