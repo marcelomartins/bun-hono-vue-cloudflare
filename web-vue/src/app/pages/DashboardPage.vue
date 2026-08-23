@@ -6,14 +6,14 @@ const { user } = useCurrentUser();
 
 <template>
   <section class="page card">
-    <p class="pill">Área protegida</p>
-    <h1 class="section-title">Visão geral</h1>
+    <p class="pill">Protected area</p>
+    <h1 class="section-title">Overview</h1>
     <p class="section-copy">
-      Esta rota só é servida depois que o Worker valida a sessão. Substitua este conteúdo pelo
-      painel do seu produto.
+      This route is only served after the Worker validates the session. Replace this content
+      with your product's dashboard.
     </p>
     <p v-if="user" class="section-copy">
-      Sessão ativa para <strong>{{ user.name }}</strong> ({{ user.email }}).
+      Active session for <strong>{{ user.name }}</strong> ({{ user.email }}).
     </p>
   </section>
 </template>

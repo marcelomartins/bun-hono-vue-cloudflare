@@ -3,10 +3,10 @@
     <RouterLink class="brand" to="/">BHVC</RouterLink>
 
     <nav>
-      <RouterLink to="/pricing">Planos</RouterLink>
-      <RouterLink to="/contact">Contato</RouterLink>
-      <RouterLink class="button ghost" to="/login">Entrar</RouterLink>
-      <RouterLink class="button primary" to="/register">Criar conta</RouterLink>
+      <RouterLink to="/pricing">Pricing</RouterLink>
+      <RouterLink to="/contact">Contact</RouterLink>
+      <RouterLink class="button ghost" to="/login">Sign in</RouterLink>
+      <RouterLink class="button primary" to="/register">Create account</RouterLink>
     </nav>
   </header>
 </template>

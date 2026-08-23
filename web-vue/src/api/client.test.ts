@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { errorMessage } from "../i18n/pt-BR";
+import { errorMessage } from "../i18n/messages";
 import { isApiErrorBody } from "./errors";
 
 describe("isApiErrorBody", () => {
@@ -19,8 +19,8 @@ describe("isApiErrorBody", () => {
 });
 
 describe("errorMessage", () => {
-  test("maps known codes to pt-BR messages", () => {
-    expect(errorMessage("INVALID_CREDENTIALS")).toBe("E-mail ou senha inválidos.");
+  test("maps known codes to messages", () => {
+    expect(errorMessage("INVALID_CREDENTIALS")).toBe("Invalid email or password.");
   });
 
   test("falls back to the request id for unknown codes", () => {

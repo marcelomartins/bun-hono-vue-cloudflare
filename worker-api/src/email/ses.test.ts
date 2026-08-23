@@ -9,9 +9,9 @@ const input = {
   secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
   message: {
     to: "user@example.com",
-    subject: "Bem-vindo",
-    text: "Olá",
-    html: "<p>Olá</p>"
+    subject: "Welcome — your account is ready",
+    text: "Welcome",
+    html: "<p>Welcome</p>"
   },
   now: new Date("2026-08-15T12:34:56.000Z")
 };
@@ -43,7 +43,7 @@ describe("createSesRequest", () => {
     const original = await createSesRequest(input);
     const modified = await createSesRequest({
       ...input,
-      message: { ...input.message, subject: "Outro assunto" }
+      message: { ...input.message, subject: "Another subject" }
     });
     expect(original.headers.get("authorization")).not.toBe(modified.headers.get("authorization"));
   });
@@ -53,7 +53,7 @@ describe("createSesRequest", () => {
     expect(await request.json()).toMatchObject({
       FromEmailAddress: "App <login@example.com>",
       Destination: { ToAddresses: ["user@example.com"] },
-      Content: { Simple: { Subject: { Data: "Bem-vindo" } } }
+      Content: { Simple: { Subject: { Data: "Welcome — your account is ready" } } }
     });
   });
 });

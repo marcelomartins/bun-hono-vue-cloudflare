@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@bhvc/contracts": "workspace:*",
-    "hono": "^4.12.15",
-    "zod": "^4.3.6"
+    "hono": "^4.13.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.18.8",
-    "@types/bun": "^1.3.4",
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "@types/bun": "^1.4.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.11"
   }
 }

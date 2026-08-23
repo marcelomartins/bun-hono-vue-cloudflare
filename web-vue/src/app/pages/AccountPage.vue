@@ -3,7 +3,7 @@ import type { UserDto } from "@bhvc/contracts/api";
 import { ref, watchEffect } from "vue";
 import { apiFetch } from "../../api/client";
 import { ApiError } from "../../api/errors";
-import { errorMessage } from "../../i18n/pt-BR";
+import { errorMessage } from "../../i18n/messages";
 import { useCurrentUser } from "../../shared/user";
 
 const { user, setUser } = useCurrentUser();
@@ -37,26 +37,26 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="page card">
-    <h1 class="section-title">Conta</h1>
-    <p class="section-copy">Dados da conta autenticada, retornados por <code>/api/v1/me</code>.</p>
+    <h1 class="section-title">Account</h1>
+    <p class="section-copy">Data for the authenticated account, returned by <code>/api/v1/me</code>.</p>
 
     <dl v-if="user" class="account-data">
-      <div><dt>E-mail</dt><dd>{{ user.email }}</dd></div>
-      <div><dt>Identificador</dt><dd><code>{{ user.uuid }}</code></dd></div>
-      <div><dt>Criada em</dt><dd>{{ new Date(user.createdAt).toLocaleString("pt-BR") }}</dd></div>
+      <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+      <div><dt>Identifier</dt><dd><code>{{ user.uuid }}</code></dd></div>
+      <div><dt>Created at</dt><dd>{{ new Date(user.createdAt).toLocaleString() }}</dd></div>
     </dl>
 
     <form class="account-form" @submit.prevent="submit">
       <label class="field">
-        <span>Nome</span>
+        <span>Name</span>
         <input v-model="name" type="text" name="name" required minlength="2" maxlength="120" />
       </label>
 
       <p v-if="feedback" class="form-error" role="alert">{{ feedback }}</p>
-      <p v-else-if="success" class="form-success" role="status">Nome atualizado.</p>
+      <p v-else-if="success" class="form-success" role="status">Name updated.</p>
 
       <button class="button primary" type="submit" :disabled="pending">
-        {{ pending ? "Salvando…" : "Salvar" }}
+        {{ pending ? "Saving…" : "Save" }}
       </button>
     </form>
   </section>

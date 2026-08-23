@@ -5,7 +5,7 @@ import { authErrorText, navigate } from "./auth-feedback";
 import TurnstileWidget from "./components/TurnstileWidget.vue";
 import { usePublicHead } from "./head";
 
-usePublicHead("Entrar — BHVC Starter Kit");
+usePublicHead("Sign in — BHVC Starter Kit");
 
 const email = ref("");
 const password = ref("");
@@ -38,17 +38,17 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="auth-card card">
-    <h1 class="section-title">Entrar</h1>
-    <p class="section-copy">Acesse a área protegida com sua conta.</p>
+    <h1 class="section-title">Sign in</h1>
+    <p class="section-copy">Access the protected area with your account.</p>
 
     <form class="auth-form" @submit.prevent="submit">
       <label class="field">
-        <span>E-mail</span>
+        <span>Email</span>
         <input v-model="email" type="email" name="email" autocomplete="email" required />
       </label>
 
       <label class="field">
-        <span>Senha</span>
+        <span>Password</span>
         <input
           v-model="password"
           type="password"
@@ -63,13 +63,13 @@ async function submit(): Promise<void> {
       <p v-if="feedback" class="form-error" role="alert">{{ feedback }}</p>
 
       <button class="button primary" type="submit" :disabled="pending">
-        {{ pending ? "Entrando…" : "Entrar" }}
+        {{ pending ? "Signing in…" : "Sign in" }}
       </button>
     </form>
 
     <p class="auth-switch">
-      Ainda não tem conta?
-      <RouterLink to="/register">Criar conta</RouterLink>
+      Don't have an account yet?
+      <RouterLink to="/register">Create account</RouterLink>
     </p>
   </section>
 </template>

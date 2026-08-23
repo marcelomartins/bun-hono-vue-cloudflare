@@ -5,7 +5,7 @@
       <RouterView />
     </main>
     <footer class="shell public-footer">
-      <p>BHVC Starter Kit — Bun, Hono, Vue e Cloudflare.</p>
+      <p>BHVC Starter Kit — Bun, Hono, Vue, and Cloudflare.</p>
     </footer>
   </div>
 </template>

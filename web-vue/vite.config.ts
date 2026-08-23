@@ -3,7 +3,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
-import { forbiddenDependencyChunk } from "./scripts/forbidden-dependencies";
+import { forbiddenDependencyChunk } from "./scripts/forbidden-dependencies.ts";
 
 const rootWranglerPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
 const rootStatePath = fileURLToPath(new URL("../.wrangler/state", import.meta.url));

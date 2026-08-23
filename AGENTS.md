@@ -9,69 +9,37 @@
 - There should be no unnecessary or unused code, and no unused files.
 - Do not create documentation files unless they are clearly requested.
 - Do not use Git to commit changes. Git may only be used to view or inspect changes.
-
-## Goal
-
-This repository is the source for `BHVC - Bun Hono Vue Cloudflare Starter Kit`, a small, reusable full-stack template:
-
-- `worker-api` running on Cloudflare Workers with Hono
-- `web-vue` as the single Vue web client
-- `worker-shared/contracts` with the route registry, Zod schemas, and API types shared by both
-- Cloudflare D1 bound as `DB`
-- public pages generated with SSG; protected SPA routes served only after Worker auth checks
-
-It is a generic starter: keep every feature free of product-specific behavior.
+- If `scripts/init.ts` still exists, this project has not been initialized yet: follow [`SETUP.md`](./SETUP.md) before any other work.
+- Read [`README.md`](./README.md) for the stack, the architecture, the routing model, and the API surface before changing code.
 
 ## Architecture Invariants
 
 - Keep `wrangler.jsonc` at the repository root and the Worker entrypoint at `worker-api/src/index.ts`.
-- The route registry in `worker-shared/contracts/src/router/routes.ts` is the single source of truth for public, backend, and protected routes. The Worker, the Vue router, SSG generation, and the build guards must all derive from it; never duplicate route lists.
-- Protected routes must be checked by the Worker before serving the SPA shell. Only public pages are pre-rendered. The private shell (`/index-spa*`) returns 404 to direct browser requests.
-- The session cookie must preserve the `__Host-` prefix, `HttpOnly`, `Secure`, `Path=/`, and `SameSite=Lax`. Session tokens are stateless HMAC-signed claims validated against the `session_version` column on `users`.
-- Revocation is deliberate and must not be weakened: logging out increments `session_version`, invalidating every token of that user on every device. Changing the password does the same and reissues a token for the current session only.
-- Optional integrations (email delivery, Turnstile) must stay optional. They are disabled by default, `assertRuntimeConfiguration` validates their settings only when enabled, and no default flow may depend on them. Once enabled, they fail closed.
-- Every mutation must validate the host and the `Origin` header in the Worker (`validateHostAndOrigin`). Frontend controls never replace authorization or validation in the Worker.
-- Runtime configuration fails closed: `assertRuntimeConfiguration` must keep rejecting missing or inconsistent `ENVIRONMENT`, `SESSION_SECRET`, `APP_HOST`, and `APP_ORIGIN`. Absence of secrets must never enable permissive fallbacks.
+- Derive every routing decision from the route registry in `worker-shared/contracts/src/router/routes.ts`; never duplicate route lists.
+- Never pre-render a protected page, never serve the SPA shell before the Worker has checked the session, and keep `/index-spa*` returning 404 to direct browser requests.
+- Keep the `__Host-` prefix, `HttpOnly`, `Secure`, `Path=/`, and `SameSite=Lax` on the session cookie.
+- Revocation is deliberate and must not be weakened: logout increments `session_version` and invalidates every token of that user on every device; a password change does the same and reissues a token for the current session only.
+- Keep the optional integrations optional: disabled by default, validated by `assertRuntimeConfiguration` only when enabled, failing closed once enabled, and never required by a default flow.
+- Validate the host and the `Origin` header in the Worker (`validateHostAndOrigin`) on every mutation. Frontend controls never replace authorization or validation in the Worker.
+- Keep `assertRuntimeConfiguration` rejecting missing or inconsistent `ENVIRONMENT`, `SESSION_SECRET`, `APP_HOST`, and `APP_ORIGIN`. Absence of secrets must never enable permissive fallbacks.
 - Use D1 prepared statements with `.bind()` for all external values. Never build SQL by concatenation.
-- All D1 tables use numeric `INTEGER PRIMARY KEY` ids internally and a UUID v7 `uuid` column as the public identifier. Never accept numeric database ids from clients; numeric ids never cross the API boundary.
-- Validate request bodies with the shared Zod schemas through `readJson`, which enforces size limits during read. Do not use `request.json()` directly on external input.
-- API errors follow the shared contract `{ error: { code, requestId, details? } }` with stable English codes. User-facing messages live in the frontend i18n map.
+- Never accept numeric database ids from clients; the UUID v7 `uuid` column is the only public identifier.
+- Read external bodies through `readJson` with the shared Zod schemas, never `request.json()` directly.
+- Keep API error codes stable and in English; user-facing messages belong in the frontend i18n map.
 - Do not log request/response bodies, passwords, tokens, cookies, codes, or raw email addresses. Use `structuredLog` with non-sensitive diagnostic fields and `sanitizedRequestPath`.
-- Keep technical names, code, tests, logs, and documentation in English. Keep visible application text in Brazilian Portuguese.
+- Keep everything in English: technical names, code, tests, logs, documentation, and visible application text. Never hardcode a locale.
 - Use Bun for package management, scripts, and unit tests. Do not switch the package manager or generate another lockfile.
 - Prefer Web and Workers APIs. Node.js compatibility is enabled, but Node-specific APIs require a concrete need.
-- Do not add browser dependencies casually: `check-client-build` enforces the forbidden-dependency list and a 300 kB gzip JavaScript budget.
+- Do not add browser dependencies casually: `check-client-build` enforces the forbidden-dependency list and the client JavaScript budget.
 - Treat existing migrations as applied. Schema changes require a new additive migration, unless the user explicitly confirms the database can be recreated.
-- Do not put secrets in `wrangler.jsonc`, code, or committed files. Local secrets belong to `.dev.vars`; production uses `wrangler secret`.
-- Integration tests must declare every optional binding in `vitest.config.ts` so the suite never depends on the developer's `.dev.vars`.
-- The Worker CSP in `http/middleware.ts` and the static CSP in `web-vue/static/_headers` cover different responses of the same site and must stay aligned.
+- Do not put secrets in `wrangler.jsonc`, code, or committed files.
+- Declare every optional binding in `worker-api/vitest.config.ts` so integration tests never depend on the developer's `.dev.vars`.
+- Keep the Worker CSP in `http/middleware.ts` aligned with the static CSP in `web-vue/static/_headers`; they cover different responses of the same site.
 - `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new starter identifier is introduced.
 - Do not add remote bindings, deploy, use remote D1, set secrets, or change DNS without explicit authorization.
 
 ## Verification
 
-Before completing shared changes, run:
-
-```text
-bun run verify
-```
-
-Or the individual steps while iterating:
-
-```text
-bun run types
-bun run lint
-bun run typecheck
-bun test
-bun run test:integration
-bun run build
-bun run db:migrate:local
-```
-
-Also confirm that:
-
-- only public pages are pre-rendered (the build guard checks this)
-- protected routes still go through the Worker first (the route contract test checks `wrangler.jsonc`)
-- the Worker still bundles with `DB` and `ASSETS`
+Run `bun run verify` before completing shared changes; the [Available Scripts](./README.md#available-scripts) table lists the individual steps to use while iterating. Also confirm the Worker still bundles with `DB` and `ASSETS`.
 
 Targeted tests are appropriate while iterating. All integration tests must use local workerd/Miniflare bindings. Do not start `bun run dev` or run browser tests unless the task explicitly requires runtime validation.

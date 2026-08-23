@@ -35,7 +35,7 @@ for (const relativePath of expectedHtmlFiles) {
 
 for (const relativePath of publicHtmlFiles) {
   const html = emittedHtml.get(relativePath) ?? "";
-  assert(html.includes('<html lang="pt-BR">'), `${outputPath(relativePath)} must declare pt-BR`);
+  assert(/<html[^>]+lang="[a-z]{2}(-[A-Z]{2})?"/u.test(html), `${outputPath(relativePath)} must declare a language`);
   assert(html.includes('data-server-rendered="true"'), `${outputPath(relativePath)} must contain SSG markup`);
 }
 

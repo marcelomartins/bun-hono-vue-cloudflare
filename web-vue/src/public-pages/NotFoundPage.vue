@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead("Página não encontrada — BHVC Starter Kit");
+usePublicHead("Page not found — BHVC Starter Kit");
 </script>
 
 <template>
   <section class="page card">
     <p class="pill">404</p>
-    <h1 class="section-title">Página não encontrada</h1>
-    <p class="section-copy">O endereço que você acessou não existe ou foi movido.</p>
-    <RouterLink class="button primary" to="/">Voltar para o início</RouterLink>
+    <h1 class="section-title">Page not found</h1>
+    <p class="section-copy">The address you visited does not exist or has moved.</p>
+    <RouterLink class="button primary" to="/">Back to home</RouterLink>
   </section>
 </template>
 

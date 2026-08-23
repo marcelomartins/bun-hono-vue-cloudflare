@@ -3,7 +3,7 @@ import type { UserDto } from "@bhvc/contracts/api";
 import { onMounted, ref } from "vue";
 import { apiFetch } from "../../api/client";
 import { ApiError } from "../../api/errors";
-import { errorMessage } from "../../i18n/pt-BR";
+import { errorMessage } from "../../i18n/messages";
 import { provideCurrentUser } from "../../shared/user";
 
 const { user, setUser } = provideCurrentUser();
@@ -35,17 +35,17 @@ onMounted(async () => {
       <div class="shell topbar-content">
         <RouterLink class="brand" to="/dashboard">BHVC</RouterLink>
         <div class="topbar-user">
-          <span>{{ user?.name ?? "Carregando…" }}</span>
-          <button class="text-button" type="button" @click="logout">Sair</button>
+          <span>{{ user?.name ?? "Loading…" }}</span>
+          <button class="text-button" type="button" @click="logout">Sign out</button>
         </div>
       </div>
     </header>
 
-    <nav class="app-nav" aria-label="Navegação principal">
+    <nav class="app-nav" aria-label="Main navigation">
       <div class="shell">
-        <RouterLink to="/dashboard">Visão geral</RouterLink>
-        <RouterLink to="/account">Conta</RouterLink>
-        <RouterLink to="/settings">Configurações</RouterLink>
+        <RouterLink to="/dashboard">Overview</RouterLink>
+        <RouterLink to="/account">Account</RouterLink>
+        <RouterLink to="/settings">Settings</RouterLink>
       </div>
     </nav>
 

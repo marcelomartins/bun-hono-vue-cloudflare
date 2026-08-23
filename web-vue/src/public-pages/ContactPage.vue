@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead("Contato — BHVC Starter Kit");
+usePublicHead("Contact — BHVC Starter Kit");
 </script>
 
 <template>
   <section class="page card">
-    <h1 class="section-title">Contato</h1>
+    <h1 class="section-title">Contact</h1>
     <p class="section-copy">
-      Página pública de exemplo, pré-renderizada com SSG. Substitua este conteúdo pelos canais de
-      contato do seu produto.
+      Example public page, prerendered with SSG. Replace this content with your product's
+      contact channels.
     </p>
   </section>
 </template>

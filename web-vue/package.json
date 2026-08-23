@@ -12,17 +12,17 @@
   },
   "dependencies": {
     "@bhvc/contracts": "workspace:*",
-    "@unhead/vue": "^2.1.2",
+    "@unhead/vue": "^2.1.17",
     "vite-ssg": "^28.3.0",
-    "vue": "^3.5.33",
-    "vue-router": "^5.0.6"
+    "vue": "^3.5.41",
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.45.0",
-    "@types/bun": "^1.3.4",
-    "@vitejs/plugin-vue": "^6.0.6",
+    "@cloudflare/vite-plugin": "^1.53.1",
+    "@types/bun": "^1.4.0",
+    "@vitejs/plugin-vue": "^6.0.8",
     "typescript": "^6.0.3",
-    "vite": "^8.0.10",
-    "vue-tsc": "^3.2.7"
+    "vite": "^8.2.2",
+    "vue-tsc": "^3.3.11"
   }
 }

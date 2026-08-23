@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead("Planos — BHVC Starter Kit");
+usePublicHead("Pricing — BHVC Starter Kit");
 </script>
 
 <template>
   <section class="page card">
-    <h1 class="section-title">Planos</h1>
+    <h1 class="section-title">Pricing</h1>
     <p class="section-copy">
-      Página pública de exemplo, pré-renderizada com SSG. Substitua este conteúdo pelos planos do
-      seu produto.
+      Example public page, prerendered with SSG. Replace this content with your product's
+      pricing.
     </p>
   </section>
 </template>

@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { apiFetch } from "../../api/client";
 import { ApiError } from "../../api/errors";
-import { errorMessage } from "../../i18n/pt-BR";
+import { errorMessage } from "../../i18n/messages";
 
 const currentPassword = ref("");
 const newPassword = ref("");
@@ -36,14 +36,14 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="page card">
-    <h1 class="section-title">Configurações</h1>
+    <h1 class="section-title">Settings</h1>
     <p class="section-copy">
-      Trocar a senha encerra as sessões abertas nos outros dispositivos. Esta sessão continua ativa.
+      Changing your password ends the sessions open on other devices. This session stays active.
     </p>
 
     <form class="settings-form" @submit.prevent="submit">
       <label class="field">
-        <span>Senha atual</span>
+        <span>Current password</span>
         <input
           v-model="currentPassword"
           type="password"
@@ -54,7 +54,7 @@ async function submit(): Promise<void> {
       </label>
 
       <label class="field">
-        <span>Nova senha</span>
+        <span>New password</span>
         <input
           v-model="newPassword"
           type="password"
@@ -66,10 +66,10 @@ async function submit(): Promise<void> {
       </label>
 
       <p v-if="feedback" class="form-error" role="alert">{{ feedback }}</p>
-      <p v-else-if="success" class="form-success" role="status">Senha alterada.</p>
+      <p v-else-if="success" class="form-success" role="status">Password changed.</p>
 
       <button class="button primary" type="submit" :disabled="pending">
-        {{ pending ? "Alterando…" : "Alterar senha" }}
+        {{ pending ? "Changing…" : "Change password" }}
       </button>
     </form>
   </section>
