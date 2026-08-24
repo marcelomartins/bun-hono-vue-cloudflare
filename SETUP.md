@@ -89,10 +89,11 @@ bun run dev
 
 - `README.md`: replace the title, the opening description, and the attribution line so they describe their project instead of the starter. Drop the parts that only exist to explain the starter itself: the "Starting a new project from this starter" subsection, "Running Outside Cloudflare" unless they care about leaving Cloudflare, and "Contributing" unless the project takes contributions. Keep everything that describes how their application works: architecture, repository layout, routing, API surface, database, testing, scripts, and deployment.
 - `AGENTS.md`: nothing to change. It holds generic rules that stay valid.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `.github/ISSUE_TEMPLATE/`: these describe contributing to the starter and name its maintainer. Delete them unless the project takes outside contributions; if it does, rewrite the contact details and the project-specific parts.
 - If they asked for a non-English interface in question 4, translate the visible strings in `web-vue/src/**/*.vue`, the message map in `web-vue/src/i18n/messages.ts`, and the welcome email in `worker-api/src/email/messages.ts`, then set the matching `lang` in `web-vue/index.html`, `web-vue/index-spa.html`, and `web-vue/src/App.vue`. Code, tests, and logs stay in English.
 
 ## 6. Clean up
 
-Delete `scripts/init.ts` and this file, and remove the setup bullet that points here from `AGENTS.md`. Then run `bun run verify` one last time.
+Delete `scripts/init.ts` and this file, and remove the setup bullet that points here from `AGENTS.md`. If the repository was created from the template, clear the leftover issue and pull request templates you decided not to keep. Then run `bun run verify` one last time.
 
 Finish by telling them what they now have: a working local application with registration, login, an account page, and a protected area. Point them at the README for adding a public route, adding a protected route, and deploying when they are ready.

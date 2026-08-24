@@ -1,0 +1,45 @@
+name: Proposal
+description: Suggest a change to the starter
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The starter stays deliberately small and free of product-specific behavior.
+        A proposal is more likely to land if it removes a decision every derived
+        project would otherwise have to make for itself.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard or impossible today? Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: What should change, and which files it would touch.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including doing nothing, or solving it inside a derived project instead of the starter.
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      description: See AGENTS.md, section Architecture Invariants.
+      options:
+        - label: This does not break the routing model (only public pages pre-rendered, protected routes gated by the Worker first).
+          required: true
+        - label: This does not add a browser dependency, or I explain why the client budget and forbidden-dependency list should change.
+          required: true
+        - label: This keeps optional integrations optional and everything in English with no hardcoded locale.
+          required: true

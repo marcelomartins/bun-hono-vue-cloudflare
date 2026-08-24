@@ -374,9 +374,7 @@ In exchange you lose the edge constraints: no per-request CPU limit (so a heavie
 
 BHVC is a reusable starter kit, not a finished product. Expect to clone it, adapt the modules, and replace the default authentication, pages, and data model with project-specific behavior.
 
-Issues and pull requests are welcome. Use GitHub Issues to report bugs, propose improvements, or ask implementation questions, but report security issues privately by email instead of through a public issue. For significant changes, open an issue first so the design can be discussed before implementation. Before submitting a PR, run `bun install` followed by `bun run verify`.
-
-The conventions the starter depends on are documented in [`AGENTS.md`](./AGENTS.md) under *Architecture Invariants*; they are intentional and should stay stable. In particular, preserve the routing model: only public pages should be pre-rendered, protected routes should still pass through the Worker first, and the Worker should continue bundling with `DB` and `ASSETS`.
+Issues and pull requests are welcome. [`CONTRIBUTING.md`](./CONTRIBUTING.md) covers what to run before opening one and which conventions have to stay stable. Security problems go to [`SECURITY.md`](./SECURITY.md), privately, never to a public issue.
 
 ## License
 

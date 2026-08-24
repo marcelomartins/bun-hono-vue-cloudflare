@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/marcelomartins/bun-hono-vue-cloudflare/security/policy
+    about: Do not open a public issue. Report it privately by email instead.
+  - name: Setting up a new project from the starter
+    url: https://github.com/marcelomartins/bun-hono-vue-cloudflare/blob/main/SETUP.md
+    about: Step-by-step initialization, written to be followed by an AI agent or by hand.
