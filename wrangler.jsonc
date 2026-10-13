@@ -2,7 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "bhvc-starter-kit",
   "main": "./worker-api/src/index.ts",
-  "compatibility_date": "2026-04-24",
+  // Keep at or below the date supported by the workerd bundled with
+  // @cloudflare/vitest-pool-workers, so integration tests run with production semantics.
+  "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true,

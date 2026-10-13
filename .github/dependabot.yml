@@ -1,0 +1,29 @@
+version: 2
+
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # vue-tsc and the route contract test need the classic TypeScript JS API,
+      # which TypeScript 7 no longer ships.
+      - dependency-name: typescript
+        versions: [">=7"]
+      # vite-ssg still depends on @unhead/vue 2; two copies break head management.
+      - dependency-name: "@unhead/vue"
+        versions: [">=3"]
+      # @cloudflare/vitest-pool-workers still requires vitest 4.
+      - dependency-name: vitest
+        versions: [">=5"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

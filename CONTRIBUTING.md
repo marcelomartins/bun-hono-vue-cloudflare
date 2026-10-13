@@ -26,6 +26,18 @@ The conventions the starter depends on are documented in [`AGENTS.md`](./AGENTS.
 
 Some other rules worth knowing before you start: everything is in English, including visible application text; no locale is hardcoded; all D1 access uses prepared statements with `.bind()`; request bodies are read through `readJson` with the shared Zod schemas; and nothing that could identify a user — bodies, passwords, tokens, cookies, raw email addresses — is ever logged.
 
+## Dependencies
+
+Dependabot opens weekly pull requests for Bun packages and GitHub Actions, and the `audit` workflow runs `bun audit` on every pull request and once a week. A change may not leave a known advisory in `bun.lock`.
+
+When a fixed version exists but a dependency pins the vulnerable one, force the fixed version with `overrides` in the root `package.json` and record it here. Remove the entry as soon as the pinning package ships the fix.
+
+| Override | Why | Remove when |
+| --- | --- | --- |
+| `sharp@0.35.5`, `undici@7.29.1` | `@cloudflare/vitest-pool-workers@0.23.0` pins a Miniflare release with vulnerable versions; these are the versions the current Miniflare already ships | `@cloudflare/vitest-pool-workers` depends on a Miniflare that pins these versions or later |
+
+Dependabot skips the major versions the toolchain cannot run yet. [`.github/dependabot.yml`](./.github/dependabot.yml) names the blocking dependency next to each rule; drop the rule once that dependency supports the new major.
+
 ## Reporting a security issue
 
 Do not open a public issue. See [`SECURITY.md`](./SECURITY.md).

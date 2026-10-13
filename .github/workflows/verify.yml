@@ -19,14 +19,14 @@ jobs:
       WRANGLER_SEND_METRICS: "false"
       CI: "true"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       # vite-ssg and the Vite toolchain still run on Node.
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 

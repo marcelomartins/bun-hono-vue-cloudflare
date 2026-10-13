@@ -301,7 +301,7 @@ Before sharing changes, run:
 bun run verify
 ```
 
-[`.github/workflows/verify.yml`](./.github/workflows/verify.yml) runs the same command on every push to `main` and on every pull request. It deliberately does not create a `.dev.vars`, which keeps the pipeline honest: the repository must verify from a clean checkout, exactly as a new contributor experiences it.
+[`.github/workflows/verify.yml`](./.github/workflows/verify.yml) runs the same command on every push to `main` and on every pull request. It deliberately does not create a `.dev.vars`, which keeps the pipeline honest: the repository must verify from a clean checkout, exactly as a new contributor experiences it. [`.github/workflows/audit.yml`](./.github/workflows/audit.yml) runs `bun audit` on every pull request and once a week, and Dependabot keeps dependencies current; [`CONTRIBUTING.md`](./CONTRIBUTING.md#dependencies) describes the policy.
 
 ## Deployment
 

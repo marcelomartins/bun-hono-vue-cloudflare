@@ -32,6 +32,7 @@
 - Do not log request/response bodies, passwords, tokens, cookies, codes, or raw email addresses. Use `structuredLog` with non-sensitive diagnostic fields and `sanitizedRequestPath`.
 - Keep everything in English: technical names, code, tests, logs, documentation, and visible application text. Never hardcode a locale.
 - Use Bun for package management, scripts, and unit tests. Do not switch the package manager or generate another lockfile.
+- Keep `bun audit` free of advisories. Every entry in the root `overrides` must be listed in [`CONTRIBUTING.md`](./CONTRIBUTING.md#dependencies) with why it exists and when to remove it.
 - Prefer Web and Workers APIs. Node.js compatibility is enabled, but Node-specific APIs require a concrete need.
 - Do not add browser dependencies casually: `check-client-build` enforces the forbidden-dependency list and the client JavaScript budget.
 - Treat existing migrations as applied. Schema changes require a new additive migration, unless the user explicitly confirms the database can be recreated.
