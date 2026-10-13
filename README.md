@@ -110,7 +110,7 @@ It rewrites the package names, the Worker name, the D1 database name, the sessio
 | `--create-d1` | Create the D1 database and write its `database_id` |
 | `--dry-run` | List the files that would change without writing anything |
 
-Afterwards, review `README.md` and `AGENTS.md` (they still describe the starter) and delete `scripts/init.ts`.
+Afterwards, review `README.md` and `AGENTS.md` (they still describe the starter), then remove the bootstrap tooling as described in the [clean-up step of `SETUP.md`](./SETUP.md#6-clean-up). Deleting only `scripts/init.ts` breaks `bun run typecheck`.
 
 ### Running it
 
@@ -152,7 +152,7 @@ bun run dev
 ### Authentication and security
 
 - Cookie-based sessions with a `__Host-` prefixed, `HttpOnly`, `Secure`, `SameSite=Lax` cookie.
-- Stateless session tokens signed with HMAC-SHA256 (`SESSION_SECRET`); no session table. A `session_version` column on `users` is the revocation mechanism: **logging out revokes every session of the user**, and changing the password revokes the sessions of all other devices while the current one receives a fresh token.
+- Stateless session tokens signed with HMAC-SHA256 (`SESSION_SECRET`); no session table. A `session_version` column on `users` is the revocation mechanism: **logging out revokes every session of the user**, and changing the password revokes the sessions of all other devices while the current one receives a fresh token. The trade-off is deliberate: no single device can be signed out on its own, and `SESSION_SECRET` can mint a session for any user, so a leaked secret must be rotated, which signs every user out.
 - Passwords hashed with PBKDF2-SHA256 (100k iterations, per-password salt, timing-safe compare, equalized work for unknown users).
 - Host and Origin validation on every request replaces separate CORS/CSRF layers: the Worker only serves its configured host and rejects cross-origin mutations.
 - Fail-closed runtime configuration: the Worker refuses to serve if `ENVIRONMENT`, `SESSION_SECRET`, `APP_HOST`, or `APP_ORIGIN` are missing or inconsistent.
@@ -271,8 +271,8 @@ Auth routes live under `/auth/*`, versioned API routes under `/api/v1/*` (everyt
 - `POST /auth/login` — sets the session cookie
 - `POST /auth/logout` — revokes every session of the user and clears the cookie
 - `GET /api/v1/me` — current user DTO
-- `PUT /api/v1/me` — updates the profile name
-- `PUT /api/v1/me/password` — changes the password, revokes other sessions, reissues the current one
+- `PUT /api/v1/me` — updates the profile name; `409 CONFLICT` when another request changed the account first
+- `PUT /api/v1/me/password` — changes the password, revokes other sessions, reissues the current one; `409 CONFLICT` when another password change won the race
 
 Errors always follow the shared contract, and the `requestId` also appears in the structured server log for correlation:
 

@@ -2,6 +2,7 @@ const messages: Record<string, string> = {
   AUTHENTICATION_REQUIRED: "Your session has expired. Please sign in again.",
   INVALID_CREDENTIALS: "Invalid email or password.",
   EMAIL_ALREADY_REGISTERED: "This email is already registered.",
+  CONFLICT: "Your account was changed by another request. Reload the page and try again.",
   CURRENT_PASSWORD_INVALID: "The current password is incorrect.",
   TURNSTILE_FAILED: "We could not confirm that you are not a robot. Please try again.",
   FORBIDDEN: "You do not have permission to perform this action.",

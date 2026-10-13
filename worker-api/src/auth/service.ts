@@ -41,6 +41,8 @@ export async function register(
   input: Register,
   requestId: string
 ): Promise<{ token: string; user: UserDto }> {
+  // The lookup only skips the hashing work; a concurrent registration can still
+  // reach the insert first, and createUser reports that as null.
   const existing = await findUserByEmail(env.DB, input.email);
   if (existing !== null) throw conflict("EMAIL_ALREADY_REGISTERED");
   const passwordHash = await hashPassword(input.password);
@@ -50,6 +52,7 @@ export async function register(
     normalizedEmail: input.email,
     passwordHash
   });
+  if (user === null) throw conflict("EMAIL_ALREADY_REGISTERED");
   structuredLog("info", { event: "auth_register", requestId, userUuid: user.uuid });
   await notifyWelcome(env, user, requestId);
   return { token: await createSessionToken(env, user.uuid, user.session_version), user: toUserDto(user) };
@@ -83,6 +86,7 @@ export async function updateProfile(
   requestId: string
 ): Promise<UserDto> {
   const updated = await updateUserName(env.DB, user, input.name);
+  if (updated === null) throw conflict();
   structuredLog("info", { event: "profile_updated", requestId, userUuid: user.uuid });
   return toUserDto(updated);
 }
@@ -102,6 +106,7 @@ export async function changePassword(
     throw unauthorized("CURRENT_PASSWORD_INVALID");
   }
   const updated = await updateUserPassword(env.DB, user, await hashPassword(input.newPassword));
+  if (updated === null) throw conflict();
   structuredLog("info", { event: "password_changed", requestId, userUuid: user.uuid });
   return createSessionToken(env, updated.uuid, updated.session_version);
 }

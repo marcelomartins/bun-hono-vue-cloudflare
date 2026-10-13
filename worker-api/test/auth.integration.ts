@@ -1,6 +1,7 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
+import { createUser } from "../src/auth/repository";
 import { apiRequest, registerUser, sessionCookie, TEST_PASSWORD } from "./helpers";
 
 describe("authentication", () => {
@@ -31,6 +32,27 @@ describe("authentication", () => {
     });
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ error: { code: "EMAIL_ALREADY_REGISTERED" } });
+  });
+
+  it("does not insert a second user for a registered normalized email", async () => {
+    const email = "insert-race@example.com";
+    await registerUser(email);
+    const duplicate = await createUser(env.DB, {
+      name: "Racer",
+      email,
+      normalizedEmail: email,
+      passwordHash: "unused"
+    });
+    expect(duplicate).toBeNull();
+  });
+
+  it("resolves concurrent registrations without a server error", async () => {
+    const body = { name: "Racer", email: "concurrent@example.com", password: TEST_PASSWORD };
+    const responses = await Promise.all([
+      apiRequest("/auth/register", { body }),
+      apiRequest("/auth/register", { body })
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([201, 409]);
   });
 
   it("logs in with valid credentials and rejects invalid ones", async () => {

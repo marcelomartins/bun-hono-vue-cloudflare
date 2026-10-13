@@ -94,6 +94,12 @@ bun run dev
 
 ## 6. Clean up
 
-Delete `scripts/init.ts` and this file, and remove the setup bullet that points here from `AGENTS.md`. If the repository was created from the template, clear the leftover issue and pull request templates you decided not to keep. Then run `bun run verify` one last time.
+Delete the `scripts/` directory and this file. Deleting only `scripts/init.ts` leaves `scripts/tsconfig.json` without inputs and breaks `bun run typecheck`, so also:
+
+- in `package.json`, remove the `init` script and the `tsc --noEmit -p scripts/tsconfig.json && ` prefix of `typecheck`;
+- in `README.md`, remove the `bun run init` row of the scripts table;
+- in `AGENTS.md`, remove the setup bullet that points here and the invariant about `scripts/init.ts`.
+
+If the repository was created from the template, clear the leftover issue and pull request templates you decided not to keep. Then run `bun run verify` one last time.
 
 Finish by telling them what they now have: a working local application with registration, login, an account page, and a protected area. Point them at the README for adding a public route, adding a protected route, and deploying when they are ready.
