@@ -1,8 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { CONTENT_SECURITY_POLICY } from "@bhvc/contracts/security-headers";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { Hono } from "hono";
 
 import type { AppEnv } from "../config";
-import { validateHostAndOrigin } from "./middleware";
+import { browserSecurityHeaders, errorResponse, requestPipeline, validateHostAndOrigin } from "./middleware";
 import { AppError } from "./errors";
+import type { AppBindings } from "./types";
 
 const localEnv = { ENVIRONMENT: "local" } as AppEnv;
 const productionEnv = {
@@ -17,6 +20,42 @@ function request(url: string, method = "GET", origin?: string): Request {
     ...(origin === undefined ? {} : { headers: { origin } })
   });
 }
+
+describe("request pipeline", () => {
+  const configuredEnv = {
+    ...productionEnv,
+    SESSION_SECRET: "test-session-secret-that-is-at-least-32-bytes",
+    EMAIL_DRIVER: "none",
+    TURNSTILE_SITE_KEY: ""
+  } as AppEnv;
+
+  const app = new Hono<AppBindings>();
+  app.use("*", browserSecurityHeaders);
+  app.use("*", requestPipeline);
+  app.post("/auth/login", (context) => context.body(null, 204));
+  app.onError((error, context) => errorResponse(error, context.get("requestId")));
+
+  afterEach(() => {
+    spyOn(console, "warn").mockRestore();
+  });
+
+  test("logs the real status of a rejected request and still sends security headers", async () => {
+    const warn = spyOn(console, "warn").mockImplementation(() => undefined);
+    const response = await app.request(
+      "https://app.example/auth/login",
+      { method: "POST", headers: { origin: "https://other.example" } },
+      configuredEnv
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: { code: "INVALID_ORIGIN" } });
+    expect(response.headers.get("content-security-policy")).toBe(CONTENT_SECURITY_POLICY);
+    expect(response.headers.get("strict-transport-security")).not.toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({ event: "http_request", status: 403, level: "warn" })
+    );
+  });
+});
 
 describe("validateHostAndOrigin", () => {
   test("local: accepts localhost and same-origin mutations", () => {

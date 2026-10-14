@@ -3,11 +3,46 @@ import { parseConfigFileTextToJson } from "typescript";
 
 import {
   BACKEND_ROUTE_PREFIXES,
+  isProtectedRoutePath,
+  loginPath,
   NOT_FOUND_SSG_ROUTE,
   PRIVATE_SPA_SHELL_PATHS,
   PROTECTED_ROUTE_PREFIXES,
-  PUBLIC_SSG_ROUTES
+  PUBLIC_SSG_ROUTES,
+  returnPathFromQuery
 } from "./routes";
+
+describe("login return path", () => {
+  test("recognizes protected paths by whole segments", () => {
+    expect(isProtectedRoutePath("/dashboard")).toBe(true);
+    expect(isProtectedRoutePath("/settings/profile")).toBe(true);
+    expect(isProtectedRoutePath("/dashboardx")).toBe(false);
+    expect(isProtectedRoutePath("/pricing")).toBe(false);
+  });
+
+  test("carries protected paths and drops everything else", () => {
+    expect(loginPath("/settings/profile?tab=security")).toBe(
+      "/login?next=%2Fsettings%2Fprofile%3Ftab%3Dsecurity"
+    );
+    expect(loginPath("/pricing")).toBe("/login");
+    expect(loginPath("//evil.example/dashboard")).toBe("/login");
+  });
+
+  test("accepts only same-origin protected paths from the query string", () => {
+    expect(returnPathFromQuery("?next=%2Faccount%3Fx%3D1", "/dashboard")).toBe("/account?x=1");
+    for (const value of [
+      "https://evil.example/dashboard",
+      "//evil.example/dashboard",
+      "/\\evil.example/dashboard",
+      "/dashboard/../login",
+      "/pricing",
+      "javascript:alert(1)"
+    ]) {
+      expect(returnPathFromQuery(`?${new URLSearchParams({ next: value })}`, "/dashboard")).toBe("/dashboard");
+    }
+    expect(returnPathFromQuery("", "/dashboard")).toBe("/dashboard");
+  });
+});
 
 describe("route registry", () => {
   test("keeps public, backend and protected routes disjoint", () => {

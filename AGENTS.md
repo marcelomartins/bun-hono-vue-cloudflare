@@ -38,7 +38,7 @@
 - Treat existing migrations as applied. Schema changes require a new additive migration, unless the user explicitly confirms the database can be recreated.
 - Do not put secrets in `wrangler.jsonc`, code, or committed files.
 - Declare every optional binding in `worker-api/vitest.config.ts` so integration tests never depend on the developer's `.dev.vars`.
-- Keep the Worker CSP in `http/middleware.ts` aligned with the static CSP in `web-vue/static/_headers`; they cover different responses of the same site.
+- Define browser security headers only in `worker-shared/contracts/src/http/security-headers.ts`: the Worker applies them and the build generates `_headers` from them. Never hand-write `_headers`, `robots.txt`, or `sitemap.xml`; the build generates them.
 - `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new starter identifier is introduced.
 - Do not add remote bindings, deploy, use remote D1, set secrets, or change DNS without explicit authorization.
 

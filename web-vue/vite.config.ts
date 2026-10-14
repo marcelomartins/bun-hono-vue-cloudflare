@@ -3,7 +3,9 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
+import { appOrigin } from "./scripts/app-origin.ts";
 import { forbiddenDependencyChunk } from "./scripts/forbidden-dependencies.ts";
+import { removeDuplicateAssetTags } from "./scripts/head-assets.ts";
 
 const rootWranglerPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
 const rootStatePath = fileURLToPath(new URL("../.wrangler/state", import.meta.url));
@@ -29,7 +31,7 @@ export default defineConfig(({ command, isPreview, isSsrBuild, mode }) => {
         : []),
       vue()
     ],
-    resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+    define: { "import.meta.env.APP_ORIGIN": JSON.stringify(appOrigin(rootWranglerPath)) },
     publicDir: fileURLToPath(new URL("./static", import.meta.url)),
     build: {
       outDir: fileURLToPath(new URL("../dist/web-vue", import.meta.url)),
@@ -41,6 +43,11 @@ export default defineConfig(({ command, isPreview, isSsrBuild, mode }) => {
         },
         ...(isSsrBuild === true ? {} : { output: { manualChunks: forbiddenDependencyChunk } })
       }
+    },
+    ssgOptions: {
+      // vite-ssg appends preload links without checking the tags Vite already
+      // emitted: its duplicate lookup reads attrs.file instead of attrs.href.
+      onPageRendered: (_route: string, html: string) => removeDuplicateAssetTags(html)
     }
   };
 });

@@ -48,7 +48,7 @@ Browser request
   |      -> Worker redirects authenticated users to /dashboard, otherwise serves the SSG page
   |
   +-> Protected route (/dashboard, /account, /settings)
-  |      -> Worker checks the session cookie first
+  |      -> Worker checks the session cookie first; anonymous visitors go to /login?next=<path>
   |      -> Worker fetches the canonical /index-spa asset
   |      -> Vue SPA loads protected modules
   |
@@ -70,8 +70,8 @@ The root [`wrangler.jsonc`](./wrangler.jsonc) scopes `run_worker_first` to `/`, 
 |  |- src/api/                 # Typed API client and error types
 |  |- src/i18n/                # Error-code to message map
 |  |- src/router/              # Public and SPA route groups
-|  |- scripts/                 # Post-build guards (check-client-build)
-|  |- static/                  # _headers, favicon, robots.txt
+|  |- scripts/                 # Build tooling: generated static files, post-build guards
+|  |- static/                  # Files copied verbatim into the build (favicon)
 |- worker-api/                 # Hono Worker
 |  |- src/index.ts             # Entrypoint and request routing
 |  |- src/config.ts            # SECURITY constants and fail-closed env validation
@@ -147,7 +147,7 @@ bun run dev
 - Public pages generated with SSG: `/`, `/pricing`, `/contact`, `/login`, `/register`, plus a prerendered `404` page.
 - Protected SPA routes served only after Worker-side auth: `/dashboard`, `/account`, `/settings`.
 - A single route registry in [`worker-shared/contracts/src/router/routes.ts`](./worker-shared/contracts/src/router/routes.ts) drives the Worker, the Vue router, the SSG page list, and a contract test that validates `wrangler.jsonc` coverage.
-- Authenticated visitors hitting `/` are redirected to `/dashboard` by the Worker.
+- Authenticated visitors hitting `/` are redirected to `/dashboard` by the Worker. Anonymous visitors of a protected route are sent to `/login?next=<path>`, and signing in returns them there; only same-origin protected paths are accepted as `next`, so it cannot become an open redirect.
 
 ### Authentication and security
 
@@ -157,18 +157,18 @@ bun run dev
 - Host and Origin validation on every request replaces separate CORS/CSRF layers: the Worker only serves its configured host and rejects cross-origin mutations.
 - Fail-closed runtime configuration: the Worker refuses to serve if `ENVIRONMENT`, `SESSION_SECRET`, `APP_HOST`, or `APP_ORIGIN` are missing or inconsistent.
 - Request bodies are validated with shared Zod schemas and size-limited during read.
-- Security headers (CSP, X-Frame-Options, Referrer-Policy, HSTS outside local) on Worker responses, plus a `_headers` file for statically served assets.
+- Security headers (CSP, X-Frame-Options, Referrer-Policy, HSTS) defined once in [`worker-shared/contracts/src/http/security-headers.ts`](./worker-shared/contracts/src/http/security-headers.ts): the Worker applies them to its responses (HSTS outside local), and the build writes them into the `_headers` file for statically served pages. HSTS uses `includeSubDomains`, so deploying on an apex domain requires every subdomain to serve HTTPS.
 
 ### Frontend
 
-- Typed API client (`apiFetch<T>`) with an `ApiError` carrying code, requestId, and field details; 401 responses redirect to `/login`.
+- Typed API client (`apiFetch<T>`) with an `ApiError` carrying code, requestId, and field details; 401 responses redirect to `/login` with the current protected path as `next`.
 - Error codes map to user-facing messages in [`web-vue/src/i18n/messages.ts`](./web-vue/src/i18n/messages.ts).
 - No client-side auth store: the Worker is the source of truth, and the SPA shell loads the current user from `/api/v1/me`.
-- Per-page titles and descriptions via `@unhead/vue`.
+- Per-page title, description, canonical URL, and Open Graph tags via `@unhead/vue`, built from `APP_ORIGIN` in `wrangler.jsonc`; `robots.txt` and `sitemap.xml` are generated from the route registry.
 
 ### Build guards and observability
 
-- `check-client-build.ts` runs after every frontend build and fails if: an SSG page is missing or not prerendered, the private SPA shell was prerendered, `_headers` is missing, source maps leak, a forbidden dependency (pinia, zod, axios, …) reaches the browser bundle, or client JavaScript exceeds 300 kB gzip.
+- `check-client-build.ts` runs after every frontend build and fails if: an SSG page is missing or not prerendered, the private SPA shell was prerendered, a public page lacks its description or canonical URL or loads an asset twice, `_headers`, `robots.txt`, or `sitemap.xml` is missing, source maps leak, a forbidden dependency (pinia, zod, axios, …) reaches the browser bundle, or client JavaScript exceeds 300 kB gzip.
 - Structured JSON logs with request id, sanitized path (UUIDs masked), status, and duration; Workers observability enabled in `wrangler.jsonc`.
 
 ## Optional Features
@@ -189,9 +189,7 @@ Messages live in [`worker-api/src/email/messages.ts`](./worker-api/src/email/mes
 
 1. Create a Turnstile widget in the Cloudflare dashboard.
 2. Put the site key in `TURNSTILE_SITE_KEY` (a public var) and the secret with `bunx wrangler secret put TURNSTILE_SECRET_KEY`. Locally, both go in `.dev.vars`.
-3. Uncomment the Turnstile directives in [`web-vue/static/_headers`](./web-vue/static/_headers), which carries the CSP for the statically served public pages. The Worker adjusts its own CSP automatically.
-
-Once the secret is present, `/auth/register` and `/auth/login` require a valid token and fail closed on any verification error. The frontend widget reads the site key from `GET /auth/config`, so there is no second source of configuration in the build.
+The CSP always allows the Turnstile origin, so enabling it needs no header change. Once the secret is present, `/auth/register` and `/auth/login` require a valid token and fail closed on any verification error. The frontend widget reads the site key from `GET /auth/config`, so there is no second source of configuration in the build.
 
 ### Rate limiting (suggested, not included)
 
@@ -222,7 +220,6 @@ The integrated dev server uses one origin, keeps local binding state in the root
 | `bun run test:integration` | Run integration tests in workerd with migrated D1 |
 | `bun run test:all` | Unit plus integration tests |
 | `bun run types` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` |
-| `bun run types:check` | Verify the generated types are current |
 | `bun run worker:check` | Dry-run the Worker deployment |
 | `bun run worker:startup` | Profile Worker startup time |
 | `bun run db:migrate:local` | Apply D1 migrations locally |
@@ -236,7 +233,7 @@ The integrated dev server uses one origin, keeps local binding state in the root
 
 Every routing decision derives from [`worker-shared/contracts/src/router/routes.ts`](./worker-shared/contracts/src/router/routes.ts):
 
-- `PUBLIC_SSG_ROUTES`: prerendered public pages. Consumed by `includedRoutes` in [`web-vue/src/main.ts`](./web-vue/src/main.ts), by the Worker's public asset handlers, and by `check-client-build`.
+- `PUBLIC_SSG_ROUTES`: prerendered public pages. Consumed by `includedRoutes` in [`web-vue/src/main.ts`](./web-vue/src/main.ts), by the generated `sitemap.xml`, and by `check-client-build`. The asset layer serves these pages without invoking the Worker.
 - `NOT_FOUND_SSG_ROUTE`: the prerendered `404` page used by Cloudflare's `not_found_handling`.
 - `BACKEND_ROUTE_PREFIXES`: `/health`, `/auth`, `/api`. The Worker returns JSON 404s inside these namespaces instead of falling back to assets.
 - `PROTECTED_ROUTE_PREFIXES`: routes gated by Worker auth before the SPA shell is served.
@@ -246,7 +243,7 @@ The contract test [`routes.test.ts`](./worker-shared/contracts/src/router/routes
 
 ### Adding a public route
 
-1. Create the page component under [`web-vue/src/public-pages`](./web-vue/src/public-pages) and call `usePublicHead` for its title.
+1. Create the page component under [`web-vue/src/public-pages`](./web-vue/src/public-pages) and call `usePublicHead` with its title and description.
 2. Register the Vue route in [`web-vue/src/router/routes-public.ts`](./web-vue/src/router/routes-public.ts).
 3. Add the path to `PUBLIC_SSG_ROUTES` in the route registry. SSG generation, the Worker handler, and the build guard all pick it up from there.
 4. If the route should appear in the public header, add the link in [`SiteHeader.vue`](./web-vue/src/public-pages/components/SiteHeader.vue).
@@ -344,7 +341,7 @@ Only three things in the backend depend on the platform:
 | Coupling | Where | Replacement |
 | --- | --- | --- |
 | `env.DB` (D1) | all SQL lives in [`worker-api/src/auth/repository.ts`](./worker-api/src/auth/repository.ts), plus one health query | a D1-shaped adapter over `bun:sqlite`: swap the `D1Database` type for a structural `prepare`/`bind`/`first`/`all`/`run` interface, and wrap the synchronous `bun:sqlite` calls in promises |
-| `env.ASSETS` (Workers Assets) | 2 calls in [`worker-api/src/index.ts`](./worker-api/src/index.ts) | a static-file adapter over `dist/web-vue` that reproduces extensionless URL resolution, the `404.html` fallback, path-traversal rejection, and the headers declared in [`_headers`](./web-vue/static/_headers) |
+| `env.ASSETS` (Workers Assets) | 2 calls in [`worker-api/src/index.ts`](./worker-api/src/index.ts) | a static-file adapter over `dist/web-vue` that reproduces extensionless URL resolution, the `404.html` fallback, path-traversal rejection, and the headers from [`security-headers.ts`](./worker-shared/contracts/src/http/security-headers.ts) |
 | `cf-connecting-ip` header | 2 calls in [`worker-api/src/auth/routes.ts`](./worker-api/src/auth/routes.ts) | whatever header your reverse proxy sets, such as `x-forwarded-for` |
 
 There is no KV, R2, Durable Object, `waitUntil`, `caches`, or `DB.batch()` usage anywhere, so no transaction semantics have to be reproduced. Sessions are stateless HMAC tokens, so no session store is needed either. The SQL is plain SQLite with `?` placeholders, so [`0001_init.sql`](./worker-api/migrations/0001_init.sql) runs unchanged on `bun:sqlite`, libSQL, or Turso. Moving to Postgres instead is a larger job: placeholders become `$1`, and `INTEGER PRIMARY KEY` becomes an identity column.

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead("Pricing — BHVC Starter Kit");
+usePublicHead({
+  title: "Pricing — BHVC Starter Kit",
+  description: "Example pricing page of the BHVC Starter Kit, prerendered at build time."
+});
 </script>
 
 <template>

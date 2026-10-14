@@ -9,15 +9,15 @@ describe("normalizeEmail", () => {
 });
 
 describe("registerSchema", () => {
-  test("accepts a valid payload and normalizes the email", () => {
+  test("accepts a valid payload and keeps the email as typed, trimmed", () => {
     const parsed = registerSchema.parse({
       name: "  Ada Lovelace ",
-      email: "Ada@Example.com",
+      email: " Ada@Example.com ",
       password: "correct horse battery"
     });
     expect(parsed).toEqual({
       name: "Ada Lovelace",
-      email: "ada@example.com",
+      email: "Ada@Example.com",
       password: "correct horse battery"
     });
   });

@@ -1,3 +1,5 @@
+import { loginPath } from "@bhvc/contracts/routes";
+
 import { ApiError, isApiErrorBody } from "./errors";
 
 export interface ApiFetchOptions {
@@ -36,7 +38,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const body = await readBody(response);
   if (!response.ok) {
     if (response.status === 401 && options.authenticated !== false && typeof window !== "undefined") {
-      window.location.assign("/login");
+      window.location.assign(loginPath(`${window.location.pathname}${window.location.search}`));
     }
     if (isApiErrorBody(body)) {
       throw new ApiError(response.status, body.error.code, body.error.requestId, body.error.details ?? null);

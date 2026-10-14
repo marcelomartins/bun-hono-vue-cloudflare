@@ -20,7 +20,6 @@
     "test:all": "bun run test && bun run test:integration",
     "lint": "oxlint && knip",
     "types": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler types worker-api/worker-configuration.d.ts --strict-vars=false",
-    "types:check": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler types worker-api/worker-configuration.d.ts --strict-vars=false --check",
     "worker:check": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "worker:startup": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler check startup",
     "db:migrate:local": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler d1 migrations apply bhvc-starter-kit --local",

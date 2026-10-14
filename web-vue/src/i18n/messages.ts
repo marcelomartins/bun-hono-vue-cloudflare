@@ -10,6 +10,7 @@ const messages: Record<string, string> = {
   INVALID_JSON: "We could not send your data. Please try again.",
   JSON_REQUIRED: "We could not send your data. Please try again.",
   BODY_TOO_LARGE: "The data you sent exceeds the allowed limit.",
+  NOT_FOUND: "The requested resource does not exist.",
   INVALID_HOST: "Invalid address for this application.",
   INVALID_ORIGIN: "The request was blocked for security reasons. Please reload the page.",
   INVALID_RESPONSE: "The server returned an unexpected response. Please try again.",
