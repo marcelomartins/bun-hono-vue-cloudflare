@@ -7,7 +7,7 @@
       "project": []
     },
     "web-vue": {
-      "entry": ["src/**/*.test.ts"],
+      "entry": ["src/**/*.test.ts", "scripts/*.test.ts"],
       "project": ["src/**/*.{ts,vue}", "scripts/*.ts"]
     },
     "worker-api": {

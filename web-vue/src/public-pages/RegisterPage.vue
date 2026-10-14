@@ -5,7 +5,10 @@ import { authErrorText, navigate } from "./auth-feedback";
 import TurnstileWidget from "./components/TurnstileWidget.vue";
 import { usePublicHead } from "./head";
 
-usePublicHead("Create account — BHVC Starter Kit");
+usePublicHead({
+  title: "Create account — BHVC Starter Kit",
+  description: "Create a BHVC Starter Kit account to access the protected area."
+});
 
 const name = ref("");
 const email = ref("");

@@ -1,7 +1,8 @@
 import type { ApiErrorBody } from "@bhvc/contracts/api";
+import { BROWSER_SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY } from "@bhvc/contracts/security-headers";
 import type { MiddlewareHandler } from "hono";
 
-import { assertRuntimeConfiguration, isTurnstileEnabled } from "../config";
+import { assertRuntimeConfiguration } from "../config";
 import { structuredLog } from "../observability/log";
 import { sanitizedRequestPath } from "../observability/request-path";
 import { uuidV7 } from "../shared/uuid";
@@ -9,37 +10,6 @@ import { AppError } from "./errors";
 import type { AppBindings } from "./types";
 
 let configurationChecked = false;
-
-// Keep these directives aligned with web-vue/static/_headers, which covers the
-// public pages served straight from the asset layer.
-const TURNSTILE_HOST = "https://challenges.cloudflare.com";
-
-function browserCsp(turnstileEnabled: boolean): string {
-  const script = turnstileEnabled ? `'self' ${TURNSTILE_HOST}` : "'self'";
-  const frame = turnstileEnabled ? `${TURNSTILE_HOST}` : "'none'";
-  return [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "connect-src 'self'",
-    "font-src 'self' data:",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    `frame-src ${frame}`,
-    "img-src 'self' data:",
-    "object-src 'none'",
-    `script-src ${script}`,
-    "style-src 'self' 'unsafe-inline'"
-  ].join("; ");
-}
-
-const BROWSER_SECURITY_HEADERS = {
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
-} as const;
-
-const STRICT_TRANSPORT_SECURITY = "max-age=31536000; includeSubDomains";
 
 function isSafeMethod(method: string): boolean {
   return method === "GET" || method === "HEAD" || method === "OPTIONS";
@@ -75,8 +45,12 @@ export const requestPipeline: MiddlewareHandler<AppBindings> = async (context, n
     validateHostAndOrigin(context.req.raw, context.env);
     await next();
     status = context.res.status;
+  } catch (error) {
+    // Errors thrown here reach onError only after this middleware returns, so the
+    // response status is not known yet when the request is logged.
+    if (error instanceof AppError) status = error.status;
+    throw error;
   } finally {
-    if (context.error instanceof AppError) status = context.error.status;
     structuredLog(status >= 500 ? "error" : status >= 400 ? "warn" : "info", {
       event: "http_request",
       requestId,
@@ -90,7 +64,6 @@ export const requestPipeline: MiddlewareHandler<AppBindings> = async (context, n
 
 export const browserSecurityHeaders: MiddlewareHandler<AppBindings> = async (context, next) => {
   await next();
-  context.header("Content-Security-Policy", browserCsp(isTurnstileEnabled(context.env)));
   for (const [name, value] of Object.entries(BROWSER_SECURITY_HEADERS)) {
     context.header(name, value);
   }

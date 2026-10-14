@@ -19,15 +19,15 @@ export const personNameSchema = z
     )
   );
 
-export const normalizedEmailSchema = z
-  .string()
-  .transform(normalizeEmail)
-  .pipe(
-    z.string().min(3).max(254).email().refine(
-      (value) => (value.split("@", 1)[0]?.length ?? 65) <= 64,
-      "email_local_part"
-    )
-  );
+const emailAddress = z.string().min(3).max(254).email().refine(
+  (value) => (value.split("@", 1)[0]?.length ?? 65) <= 64,
+  "email_local_part"
+);
+
+/** The address as the user typed it, kept for display; never use it as a lookup key. */
+export const emailSchema = z.string().transform((value) => value.trim()).pipe(emailAddress);
+
+export const normalizedEmailSchema = z.string().transform(normalizeEmail).pipe(emailAddress);
 
 const password = z.string().refine(
   (value) =>
@@ -47,7 +47,7 @@ const turnstileToken = z.string().min(1).max(4096).optional();
 export const registerSchema = z
   .object({
     name: personNameSchema,
-    email: normalizedEmailSchema,
+    email: emailSchema,
     password,
     turnstileToken
   })

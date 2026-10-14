@@ -1,5 +1,5 @@
 import type { UserDto } from "@bhvc/contracts/api";
-import type { Login, PasswordChange, ProfileUpdate, Register } from "@bhvc/contracts/auth";
+import { normalizeEmail, type Login, type PasswordChange, type ProfileUpdate, type Register } from "@bhvc/contracts/auth";
 
 import type { AppEnv } from "../config";
 import { welcomeEmail } from "../email/messages";
@@ -41,15 +41,16 @@ export async function register(
   input: Register,
   requestId: string
 ): Promise<{ token: string; user: UserDto }> {
+  const normalizedEmail = normalizeEmail(input.email);
   // The lookup only skips the hashing work; a concurrent registration can still
   // reach the insert first, and createUser reports that as null.
-  const existing = await findUserByEmail(env.DB, input.email);
+  const existing = await findUserByEmail(env.DB, normalizedEmail);
   if (existing !== null) throw conflict("EMAIL_ALREADY_REGISTERED");
   const passwordHash = await hashPassword(input.password);
   const user = await createUser(env.DB, {
     name: input.name,
     email: input.email,
-    normalizedEmail: input.email,
+    normalizedEmail,
     passwordHash
   });
   if (user === null) throw conflict("EMAIL_ALREADY_REGISTERED");

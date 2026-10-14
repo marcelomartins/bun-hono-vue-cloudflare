@@ -1,9 +1,9 @@
 import {
   BACKEND_ROUTE_PREFIXES,
+  loginPath,
   PRIVATE_SPA_SHELL_PATHS,
   PROTECTED_ROUTE_PREFIXES,
-  PROTECTED_SPA_SHELL_ASSET_PATH,
-  PUBLIC_SSG_ROUTES
+  PROTECTED_SPA_SHELL_ASSET_PATH
 } from "@bhvc/contracts/routes";
 import { Hono } from "hono";
 import type { Context } from "hono";
@@ -11,6 +11,7 @@ import type { Context } from "hono";
 import { accountRoutes } from "./account/routes";
 import { requireAuthentication, resolveAuthenticatedUser } from "./auth/middleware";
 import { authRoutes } from "./auth/routes";
+import { AppError } from "./http/errors";
 import { browserSecurityHeaders, errorResponse, requestPipeline } from "./http/middleware";
 import type { AppBindings } from "./http/types";
 
@@ -44,14 +45,16 @@ function hasFileExtension(path: string): boolean {
 
 async function serveProtectedShell(context: Context<AppBindings>): Promise<Response> {
   if (await resolveAuthenticatedUser(context) === null) {
+    const url = new URL(context.req.url);
     context.header("Cache-Control", "private, no-store");
-    return context.redirect("/", 302);
+    return context.redirect(loginPath(`${url.pathname}${url.search}`), 302);
   }
   return serveAsset(context, PROTECTED_SPA_SHELL_ASSET_PATH);
 }
 
-app.use("*", requestPipeline);
+// Registered first so the headers also cover the errors raised by the pipeline.
 app.use("*", browserSecurityHeaders);
+app.use("*", requestPipeline);
 
 app.get("/health", async (context) => {
   const row = await context.env.DB
@@ -79,11 +82,6 @@ app.get("/", async (context) => {
   return serveAsset(context, "/");
 });
 
-for (const route of PUBLIC_SSG_ROUTES) {
-  if (route === "/") continue;
-  app.get(route, (context) => serveAsset(context, publicAssetPath(route)));
-}
-
 for (const prefix of PROTECTED_ROUTE_PREFIXES) {
   app.get(prefix, serveProtectedShell);
   app.get(`${prefix}/*`, serveProtectedShell);
@@ -96,9 +94,12 @@ app.onError((error, context) => {
   return errorResponse(error, context.get("requestId"));
 });
 
+// Public pages are served by the asset layer without invoking the Worker, so a
+// public path only reaches this handler when its prerendered file is missing.
 app.notFound((context) => {
   const path = context.req.path;
-  if (isPrivateShellPath(path) || isBackendPath(path)) return context.text("Not Found", 404);
+  if (isBackendPath(path)) return errorResponse(new AppError(404, "NOT_FOUND"), context.get("requestId"));
+  if (isPrivateShellPath(path)) return context.text("Not Found", 404);
   if (context.req.method === "GET" && !hasFileExtension(path)) {
     return serveAsset(context, publicAssetPath(path));
   }

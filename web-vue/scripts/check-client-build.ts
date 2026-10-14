@@ -3,10 +3,13 @@ import { gzipSync } from "node:zlib";
 
 import { NOT_FOUND_SSG_ROUTE, PUBLIC_SSG_ROUTES } from "@bhvc/contracts/routes";
 
+import { appOrigin } from "./app-origin";
 import { FORBIDDEN_CHUNK_PREFIX } from "./forbidden-dependencies";
+import { removeDuplicateAssetTags } from "./head-assets";
 
 const decoder = new TextDecoder();
 const outputDirectory = "../dist/web-vue";
+const origin = appOrigin("../wrangler.jsonc");
 
 function outputPath(relativePath: string): string {
   return `${outputDirectory}/${relativePath}`;
@@ -24,6 +27,12 @@ function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+function hasTag(html: string, element: string, attributes: Record<string, string>): boolean {
+  return [...html.matchAll(new RegExp(`<${element}\\b[^>]*>`, "gu"))].some(([tag]) =>
+    Object.entries(attributes).every(([name, value]) => tag.includes(`${name}="${value}"`))
+  );
+}
+
 const publicHtmlFiles = [...PUBLIC_SSG_ROUTES, NOT_FOUND_SSG_ROUTE].map(htmlFile);
 const expectedHtmlFiles = [...publicHtmlFiles, "index-spa.html"];
 const emittedHtml = new Map<string, string>();
@@ -35,13 +44,31 @@ for (const relativePath of expectedHtmlFiles) {
 
 for (const relativePath of publicHtmlFiles) {
   const html = emittedHtml.get(relativePath) ?? "";
-  assert(/<html[^>]+lang="[a-z]{2}(-[A-Z]{2})?"/u.test(html), `${outputPath(relativePath)} must declare a language`);
-  assert(html.includes('data-server-rendered="true"'), `${outputPath(relativePath)} must contain SSG markup`);
+  const path = outputPath(relativePath);
+  assert(/<html[^>]+lang="[a-z]{2}(-[A-Z]{2})?"/u.test(html), `${path} must declare a language`);
+  assert(html.includes('data-server-rendered="true"'), `${path} must contain SSG markup`);
+  assert(/<meta name="description" content="[^"]+"/u.test(html), `${path} must have a description`);
+  assert(removeDuplicateAssetTags(html) === html, `${path} references the same asset twice`);
 }
+
+for (const route of PUBLIC_SSG_ROUTES) {
+  const html = emittedHtml.get(htmlFile(route)) ?? "";
+  const url = `${origin}${route}`;
+  assert(
+    hasTag(html, "link", { rel: "canonical", href: url }) && hasTag(html, "meta", { property: "og:url", content: url }),
+    `${outputPath(htmlFile(route))} must declare ${url} as its canonical URL`
+  );
+}
+assert(
+  hasTag(emittedHtml.get(htmlFile(NOT_FOUND_SSG_ROUTE)) ?? "", "meta", { name: "robots", content: "noindex" }),
+  "the 404 page must not be indexed"
+);
 
 const privateShell = emittedHtml.get("index-spa.html") ?? "";
 assert(!privateShell.includes('data-server-rendered="true"'), "the private shell must not be pre-rendered");
-assert(await Bun.file(outputPath("_headers")).exists(), "Cloudflare static headers were not emitted");
+for (const file of ["_headers", "robots.txt", "sitemap.xml"]) {
+  assert(await Bun.file(outputPath(file)).exists(), `${outputPath(file)} was not emitted`);
+}
 
 const assetFiles = await readdir(outputPath("assets"));
 assert(

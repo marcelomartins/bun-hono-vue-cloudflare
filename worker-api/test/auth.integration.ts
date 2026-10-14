@@ -34,6 +34,15 @@ describe("authentication", () => {
     expect(await response.json()).toMatchObject({ error: { code: "EMAIL_ALREADY_REGISTERED" } });
   });
 
+  it("keeps the email as typed while matching it case-insensitively", async () => {
+    const { user } = await registerUser("Mixed.Case@Example.com");
+    expect(user).toMatchObject({ email: "Mixed.Case@Example.com" });
+    const login = await apiRequest("/auth/login", {
+      body: { email: "mixed.case@example.com", password: TEST_PASSWORD }
+    });
+    expect(login.status).toBe(204);
+  });
+
   it("does not insert a second user for a registered normalized email", async () => {
     const email = "insert-race@example.com";
     await registerUser(email);

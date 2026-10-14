@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import { apiRequest, registerUser } from "./helpers";
 
 describe("SPA shell gate", () => {
-  it("redirects anonymous visitors away from protected routes", async () => {
-    for (const path of ["/dashboard", "/account", "/settings", "/dashboard/nested"]) {
+  it("sends anonymous visitors to the login page with the path to return to", async () => {
+    for (const path of ["/dashboard", "/account", "/settings", "/dashboard/nested", "/settings?tab=security"]) {
       const response = await apiRequest(path);
       expect(response.status).toBe(302);
-      expect(response.headers.get("location")).toBe("/");
+      expect(response.headers.get("location")).toBe(`/login?${new URLSearchParams({ next: path })}`);
       expect(response.headers.get("cache-control")).toBe("private, no-store");
     }
   });
@@ -38,10 +38,15 @@ describe("SPA shell gate", () => {
 
   it("keeps backend namespaces out of the asset fallback", async () => {
     const { cookie } = await registerUser("shell-backend@example.com");
-    expect((await apiRequest("/auth/unknown")).status).toBe(404);
-    expect((await apiRequest("/health/unknown")).status).toBe(404);
     // The API namespace authenticates before routing, so anonymous requests are 401.
     expect((await apiRequest("/api/v1/unknown")).status).toBe(401);
-    expect((await apiRequest("/api/v1/unknown", { cookie })).status).toBe(404);
+    for (const response of [
+      await apiRequest("/auth/unknown"),
+      await apiRequest("/health/unknown"),
+      await apiRequest("/api/v1/unknown", { cookie })
+    ]) {
+      expect(response.status).toBe(404);
+      expect(await response.json()).toMatchObject({ error: { code: "NOT_FOUND" } });
+    }
   });
 });

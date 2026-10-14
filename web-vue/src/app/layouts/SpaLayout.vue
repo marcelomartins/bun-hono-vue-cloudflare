@@ -8,13 +8,26 @@ import { provideCurrentUser } from "../../shared/user";
 
 const { user, setUser } = provideCurrentUser();
 const feedback = ref("");
+const signingOut = ref(false);
 
 async function logout(): Promise<void> {
+  if (signingOut.value) return;
+  signingOut.value = true;
+  feedback.value = "";
   try {
-    await apiFetch<void>("/auth/logout", { method: "POST" });
-  } finally {
-    window.location.assign("/");
+    await apiFetch<void>("/auth/logout", { method: "POST", authenticated: false });
+  } catch (error) {
+    // A 401 means the session is already gone, which is what signing out wants.
+    if (!(error instanceof ApiError && error.status === 401)) {
+      feedback.value =
+        error instanceof ApiError
+          ? errorMessage(error.code, error.requestId)
+          : errorMessage("INTERNAL_ERROR");
+      signingOut.value = false;
+      return;
+    }
   }
+  window.location.assign("/");
 }
 
 onMounted(async () => {
@@ -36,7 +49,9 @@ onMounted(async () => {
         <RouterLink class="brand" to="/dashboard">BHVC</RouterLink>
         <div class="topbar-user">
           <span>{{ user?.name ?? "Loading…" }}</span>
-          <button class="text-button" type="button" @click="logout">Sign out</button>
+          <button class="text-button" type="button" :disabled="signingOut" @click="logout">
+            {{ signingOut ? "Signing out…" : "Sign out" }}
+          </button>
         </div>
       </div>
     </header>

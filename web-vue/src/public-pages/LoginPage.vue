@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import { returnPathFromQuery } from "@bhvc/contracts/routes";
 import { ref, useTemplateRef } from "vue";
 import { apiFetch } from "../api/client";
 import { authErrorText, navigate } from "./auth-feedback";
 import TurnstileWidget from "./components/TurnstileWidget.vue";
 import { usePublicHead } from "./head";
 
-usePublicHead("Sign in — BHVC Starter Kit");
+usePublicHead({
+  title: "Sign in — BHVC Starter Kit",
+  description: "Sign in to your BHVC Starter Kit account."
+});
 
 const email = ref("");
 const password = ref("");
@@ -27,7 +31,7 @@ async function submit(): Promise<void> {
       },
       authenticated: false
     });
-    navigate("/dashboard");
+    navigate(returnPathFromQuery(window.location.search, "/dashboard"));
   } catch (error) {
     feedback.value = authErrorText(error);
     turnstile.value?.reset();

@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead("Page not found — BHVC Starter Kit");
+usePublicHead({
+  title: "Page not found — BHVC Starter Kit",
+  description: "The page you requested does not exist or has moved.",
+  indexable: false
+});
 </script>
 
 <template>

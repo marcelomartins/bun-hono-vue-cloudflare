@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:cloudflare": "vite --mode cloudflare",
-    "build": "vite-ssg build && bun scripts/check-client-build.ts",
+    "build": "vite-ssg build && bun scripts/write-static-files.ts && bun scripts/check-client-build.ts",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },

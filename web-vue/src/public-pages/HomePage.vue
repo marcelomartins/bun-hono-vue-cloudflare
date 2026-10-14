@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { usePublicHead } from "./head";
 
-usePublicHead(
-  "BHVC Starter Kit",
-  "Full-stack starter with Bun, Hono, Vue, and Cloudflare: prerendered public pages and a SPA protected by the Worker."
-);
+usePublicHead({
+  title: "BHVC Starter Kit",
+  description:
+    "Full-stack starter with Bun, Hono, Vue, and Cloudflare: prerendered public pages and a SPA protected by the Worker."
+});
 </script>
 
 <template>
